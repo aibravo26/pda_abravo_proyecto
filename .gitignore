@@ -2,3 +2,8 @@
 *.py[cod]
 __pycache__/
 *.so
+
+# Virtual environment
+.venv/
+poetry-env/
+.env/

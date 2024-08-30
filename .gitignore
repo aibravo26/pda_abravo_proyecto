@@ -5,5 +5,3 @@ __pycache__/
 
 # Virtual environment
 .venv/
-poetry-env/
-.env/

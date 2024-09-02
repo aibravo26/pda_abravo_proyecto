@@ -1,10 +1,11 @@
+import io
 import unittest
 import pandas as pd
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock, mock_open
 from datetime import datetime
-import main
+from main import load_config, get_weather_data, get_api_key, load_cities_data
 
-class TestWeatherDataRetrieval(unittest.TestCase):
+class TestWeatherDataFunctions(unittest.TestCase):
 
     @patch('main.requests.get')
     def test_get_weather_data(self, mock_get):
@@ -53,7 +54,7 @@ class TestWeatherDataRetrieval(unittest.TestCase):
         api_key = "dummy_key"
 
         # Call the function
-        result = main.get_weather_data(lat, lon, api_key)
+        result = get_weather_data(lat, lon, api_key)
 
         # Convert the result to a DataFrame
         result_df = pd.DataFrame([{
@@ -99,6 +100,87 @@ class TestWeatherDataRetrieval(unittest.TestCase):
 
         # Compare the DataFrames
         pd.testing.assert_frame_equal(result_df, expected_result_df)
+
+
+    @patch('main.configparser.ConfigParser')
+    def test_load_config(self, mock_config_parser):
+        # Mocking the configparser.ConfigParser instance
+        mock_config = MagicMock()
+        
+        # Mocking the 'DEFAULT' section access
+        mock_config.__getitem__.return_value = {
+            'input_file': 'test_input.csv',
+            'output_file': 'test_output.csv',
+            'pause_duration': '2.5'
+        }
+        
+        mock_config_parser.return_value = mock_config
+
+        # Call the load_config function
+        result = load_config('test_config.ini')
+
+        # Expected output
+        expected_result = {
+            'input_file': 'test_input.csv',
+            'output_file': 'test_output.csv',
+            'pause_duration': 2.5
+        }
+
+        # Assertions to check if the result matches the expected output
+        self.assertEqual(result, expected_result)
+        mock_config.read.assert_called_once_with('test_config.ini')
+
+
+    @patch('main.os.getenv')
+    def test_get_api_key_success(self, mock_getenv):
+        # Simulate the environment variable being set
+        mock_getenv.return_value = 'dummy_api_key'
+
+        # Call the function
+        result = get_api_key()
+
+        # Check that the function returns the correct API key
+        self.assertEqual(result, 'dummy_api_key')
+
+
+    @patch('main.os.getenv')
+    def test_get_api_key_not_set(self, mock_getenv):
+        # Simulate the environment variable not being set
+        mock_getenv.return_value = None
+
+        # Check that the function raises a ValueError
+        with self.assertRaises(ValueError) as context:
+            get_api_key()
+
+        self.assertEqual(str(context.exception), "No API key found. Please set the OPENWEATHERMAP_API_KEY environment variable.")
+
+
+    @patch('builtins.open', new_callable=mock_open)
+    def test_load_cities_data_success(self, mock_file):
+        # Mocking a CSV file content
+        mock_csv_content = (
+            "country,capital,lat,lon\n"
+            "argentina,buenos aires,34.2,52.1\n"
+            "francia,paris,13.1,22.3\n"
+        )
+
+        # Set the mock to return the CSV content when read
+        mock_file.return_value = io.StringIO(mock_csv_content)
+
+        # Call the function
+        result = load_cities_data('test_file.csv')
+
+        # Expected DataFrame
+        expected_df = pd.DataFrame({
+            'country': ['argentina', 'francia'],
+            'capital': ['buenos aires', 'paris'],
+            'lat': [34.2, 13.1],
+            'lon': [52.1, 22.3]
+        })
+
+        # Check that the function returns the correct DataFrame
+        pd.testing.assert_frame_equal(result, expected_df)
+
 
 if __name__ == '__main__':
     unittest.main(exit=False)

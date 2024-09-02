@@ -1,7 +1,8 @@
 import unittest
-import main
+import pandas as pd
 from unittest.mock import patch
 from datetime import datetime
+import main
 
 class TestWeatherDataRetrieval(unittest.TestCase):
 
@@ -49,17 +50,34 @@ class TestWeatherDataRetrieval(unittest.TestCase):
         # Test data
         lat = 51.5085
         lon = -0.1257
-        api_key = "dummy_key"  # Replace with a real API key if needed
+        api_key = "dummy_key"
 
         # Call the function
         result = main.get_weather_data(lat, lon, api_key)
 
-        # Get the current timestamp and date for comparison
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        date_only = datetime.now().strftime('%Y-%m-%d')
+        # Convert the result to a DataFrame
+        result_df = pd.DataFrame([{
+            "temperature": result["main"]["temp"],
+            "feels_like": result["main"]["feels_like"],
+            "min_temperature": result["main"]["temp_min"],
+            "max_temperature": result["main"]["temp_max"],
+            "pressure": result["main"]["pressure"],
+            "humidity": result["main"]["humidity"],
+            "visibility": result.get("visibility", "N/A"),
+            "wind_speed": result["wind"]["speed"],
+            "wind_deg": result["wind"]["deg"],
+            "wind_gust": result["wind"].get("gust", "N/A"),
+            "weather": result["weather"][0]["description"],
+            "weather_main": result["weather"][0]["main"],
+            "cloudiness": result["clouds"]["all"],
+            "sunrise": result["sys"]["sunrise"],
+            "sunset": result["sys"]["sunset"],
+            "lon": result["coord"]["lon"],
+            "lat": result["coord"]["lat"]
+        }])
 
-        # Expected result based on the mock_response
-        expected_result = {
+        # Expected result DataFrame
+        expected_result_df = pd.DataFrame([{
             "temperature": 15.0,
             "feels_like": 14.0,
             "min_temperature": 10.0,
@@ -77,26 +95,10 @@ class TestWeatherDataRetrieval(unittest.TestCase):
             "sunset": 1622581200,
             "lon": lon,
             "lat": lat
-        }
+        }])
 
-        # Test the output of your function against the expected result
-        self.assertEqual(result["main"]["temp"], expected_result["temperature"])
-        self.assertEqual(result["main"]["feels_like"], expected_result["feels_like"])
-        self.assertEqual(result["main"]["temp_min"], expected_result["min_temperature"])
-        self.assertEqual(result["main"]["temp_max"], expected_result["max_temperature"])
-        self.assertEqual(result["main"]["pressure"], expected_result["pressure"])
-        self.assertEqual(result["main"]["humidity"], expected_result["humidity"])
-        self.assertEqual(result.get("visibility", "N/A"), expected_result["visibility"])
-        self.assertEqual(result["wind"]["speed"], expected_result["wind_speed"])
-        self.assertEqual(result["wind"]["deg"], expected_result["wind_deg"])
-        self.assertEqual(result["wind"].get("gust", "N/A"), expected_result["wind_gust"])
-        self.assertEqual(result["weather"][0]["description"], expected_result["weather"])
-        self.assertEqual(result["weather"][0]["main"], expected_result["weather_main"])
-        self.assertEqual(result["clouds"]["all"], expected_result["cloudiness"])
-        self.assertEqual(result["sys"]["sunrise"], expected_result["sunrise"])
-        self.assertEqual(result["sys"]["sunset"], expected_result["sunset"])
-        self.assertEqual(result["coord"]["lon"], expected_result["lon"])
-        self.assertEqual(result["coord"]["lat"], expected_result["lat"])
+        # Compare the DataFrames
+        pd.testing.assert_frame_equal(result_df, expected_result_df)
 
 if __name__ == '__main__':
     unittest.main(exit=False)

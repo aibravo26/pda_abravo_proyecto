@@ -5,3 +5,6 @@ __pycache__/
 
 # Virtual environment
 .venv/
+
+# Output
+world_capitals_weather_data.csv

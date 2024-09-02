@@ -64,9 +64,9 @@ def main():
     weather_data = []
 
     # Loop through the list of capitals and fetch their weather data
-    for index, row in cities_df.iterrows():
-        logging.info(f"Processing weather data for {row['capital_city']}, {row['country']}")
-        city_weather = get_weather_data(row["lat"], row["lon"], api_key)
+    for index, city in cities_df.iterrows():
+        logging.info(f"Processing weather data for {city['capital_city']}, {city['country']}")
+        city_weather = get_weather_data(city["lat"], city["lon"], api_key)
         
         if city_weather is not None:
             timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -74,14 +74,17 @@ def main():
             weather_info = {
                 "timestamp": timestamp,
                 "date": date,
-                "country": row["country"],
-                "capital_city": row["capital_city"],
+                "country": city["country"],
+                "capital_city": city["capital_city"],
+                "country_code": city_weather["sys"]["country"],
                 "temperature": city_weather["main"]["temp"],
                 "feels_like": city_weather["main"]["feels_like"],
                 "min_temperature": city_weather["main"]["temp_min"],
                 "max_temperature": city_weather["main"]["temp_max"],
                 "pressure": city_weather["main"]["pressure"],
                 "humidity": city_weather["main"]["humidity"],
+                "sea_level": city_weather["main"]["sea_level"],
+                "grnd_level": city_weather["main"]["grnd_level"],
                 "visibility": city_weather.get("visibility", "N/A"),
                 "wind_speed": city_weather["wind"]["speed"],
                 "wind_deg": city_weather["wind"]["deg"],
@@ -91,8 +94,8 @@ def main():
                 "cloudiness": city_weather["clouds"]["all"],
                 "sunrise": city_weather["sys"]["sunrise"],
                 "sunset": city_weather["sys"]["sunset"],
-                "lon": row["lon"],
-                "lat": row["lat"]
+                "lon": city["lon"],
+                "lat": city["lat"]
             }
             weather_data.append(weather_info)
         

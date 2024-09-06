@@ -4,15 +4,17 @@ import configparser
 import logging
 import time
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Function to load configuration from the config file
 def load_config(config_file='config.ini'):
     config = configparser.ConfigParser()
     config.read(config_file)
     return {
-        'input_file': config['DEFAULT']['input_file'],
-        'output_file': config['DEFAULT']['output_file'],
+        'input_cities_file': config['DEFAULT']['input_cities_file'],
+        'extracted_weather_file': config['DEFAULT']['extracted_weather_file'],
+        'transformed_weather_file': config['DEFAULT']['transformed_weather_file'],
+        'loaded_weather_file': config['DEFAULT']['loaded_weather_file'],
         'pause_duration': float(config['DEFAULT']['pause_duration'])
     }
 
@@ -23,15 +25,29 @@ def get_api_key():
         raise ValueError("No API key found. Please set the OPENWEATHERMAP_API_KEY environment variable.")
     return api_key
 
-# Function to load cities data from CSV
-def load_cities_data(input_file):
+# Extract Phase: Load cities data and process weather data for each city
+def extract(input_cities_file, api_key, extracted_weather_file, pause_duration):
     try:
-        return pd.read_csv(input_file)
+        cities_df = pd.read_csv(input_cities_file)
+        weather_data = []
+        
+        for _, city in cities_df.iterrows():
+            logging.info(f"Processing weather data for {city['capital_city']}, {city['country']}")
+            city_weather = process_city_weather(city, api_key)
+            if city_weather:
+                weather_data.append(city_weather)
+            time.sleep(pause_duration)
+        
+        # Save the extracted weather data as CSV
+        weather_df = pd.DataFrame(weather_data)
+        weather_df.to_parquet(extracted_weather_file, index=False)
+        logging.info(f"Extracted weather data saved to: {extracted_weather_file}")
+        return extracted_weather_file
     except FileNotFoundError:
-        logging.error(f"File not found: {input_file}")
+        logging.error(f"File not found: {input_cities_file}")
         raise
     except Exception as e:
-        logging.error(f"An error occurred while loading the file: {input_file}, Error: {e}")
+        logging.error(f"An error occurred during extraction: {e}")
         raise
 
 # Function to get current weather data from OpenWeatherMap API
@@ -60,12 +76,7 @@ def process_city_weather(city, api_key):
     if city_weather is None:
         return None
     
-    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    date = datetime.now().strftime('%Y-%m-%d')
-    
     return {
-        "timestamp": timestamp,
-        "date": date,
         "country": city["country"],
         "capital_city": city["capital_city"],
         "temperature": city_weather["main"]["temp"],
@@ -79,7 +90,6 @@ def process_city_weather(city, api_key):
         "visibility": city_weather.get("visibility", "N/A"),
         "wind_speed": city_weather["wind"]["speed"],
         "wind_deg": city_weather["wind"]["deg"],
-        "wind_gust": city_weather["wind"].get("gust", "N/A"),
         "weather": city_weather["weather"][0]["description"],
         "weather_main": city_weather["weather"][0]["main"],
         "cloudiness": city_weather["clouds"]["all"],
@@ -89,45 +99,47 @@ def process_city_weather(city, api_key):
         "lat": city["lat"]
     }
 
-# Function to save the weather data to a CSV file
-def save_weather_data(weather_data, output_file):
-    if not weather_data:
-        logging.warning("No weather data was retrieved.")
-        return
-    
-    weather_df = pd.DataFrame(weather_data)
-    weather_df.to_csv(output_file, index=False)
-    logging.info(f"Weather data successfully saved to: {output_file}")
+# Transform Phase: Add new columns with execution timestamp and date
+def transform(extracted_weather_file, transformed_weather_file):
+    weather_df = pd.read_parquet(extracted_weather_file)
+
+    # Add current timestamp in UTC and current date
+    weather_df['execution_timestamp_utc'] = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
+    weather_df['execution_date'] = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+
+    # Save the transformed DataFrame to a CSV
+    weather_df.to_parquet(transformed_weather_file, index=False)
+    logging.info(f"Transformed data saved to: {transformed_weather_file}")
+    return transformed_weather_file
+
+# Load Phase: Save the final processed data to the final output CSV
+def load(transformed_weather_file, loaded_weather_file):
+    weather_df = pd.read_parquet(transformed_weather_file)
+    weather_df.to_parquet(loaded_weather_file, index=False)
+    logging.info(f"Final weather data loaded to: {loaded_weather_file}")
     print(weather_df)
+    return loaded_weather_file
 
 # Main function
 def main():
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-    
-    # Load configurations and API key
+
+    # Load configuration and API key
     config = load_config()
     api_key = get_api_key()
+
+    logging.info("Starting the ETL process.")
+    logging.info(f"Input file: {config['input_cities_file']}")
+    logging.info(f"Output file: {config['loaded_weather_file']}")
     
-    logging.info(f"Starting the weather data retrieval process.")
-    logging.info(f"Input file: {config['input_file']}")
-    logging.info(f"Output file: {config['output_file']}")
-    logging.info(f"Pause duration between API requests: {config['pause_duration']} seconds")
-    
-    # Load cities data
-    cities_df = load_cities_data(config['input_file'])
-    logging.info(f"Successfully loaded the input file: {config['input_file']}")
-    
-    # Process each city's weather data
-    weather_data = []
-    for _, city in cities_df.iterrows():
-        logging.info(f"Processing weather data for {city['capital_city']}, {city['country']}")
-        city_weather = process_city_weather(city, api_key)
-        if city_weather:
-            weather_data.append(city_weather)
-        time.sleep(config['pause_duration'])
-    
-    # Save the collected weather data
-    save_weather_data(weather_data, config['output_file'])
+    # Extract Phase: Load cities data, process weather data, and save to a CSV
+    extracted_weather_file = extract(config['input_cities_file'], api_key, config['extracted_weather_file'], config['pause_duration'])
+
+    # Transform Phase: Add new columns and save the transformed data
+    transformed_weather_file = transform(extracted_weather_file, config['transformed_weather_file'])
+
+    # Load Phase: Save the final processed data to the output CSV
+    loaded_weather_file = load(transformed_weather_file, config['loaded_weather_file'])
 
 if __name__ == "__main__":
     main()

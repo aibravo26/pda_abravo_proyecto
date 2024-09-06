@@ -15,9 +15,10 @@ class TestLoadConfig(unittest.TestCase):
         # Mocking the 'DEFAULT' section access
         mock_config.__getitem__.return_value = {
             'input_cities_file': 'test_input.csv',
-            'extracted_weather_file': 'test_extracted.csv',
-            'transformed_weather_file': 'test_transformed.csv',
-            'loaded_weather_file': 'test_loaded.csv',
+            'output_directory': 'etl_output_files',
+            'extracted_weather_file': 'test_extracted.parquet',
+            'transformed_weather_file': 'test_transformed.parquet',
+            'loaded_weather_file': 'test_loaded.parquet',
             'pause_duration': '2.5'
         }
         
@@ -29,9 +30,10 @@ class TestLoadConfig(unittest.TestCase):
         # Expected output
         expected_result = {
             'input_cities_file': 'test_input.csv',
-            'extracted_weather_file': 'test_extracted.csv',
-            'transformed_weather_file': 'test_transformed.csv',
-            'loaded_weather_file': 'test_loaded.csv',
+            'output_directory': 'etl_output_files',
+            'extracted_weather_file': 'test_extracted.parquet',
+            'transformed_weather_file': 'test_transformed.parquet',
+            'loaded_weather_file': 'test_loaded.parquet',
             'pause_duration': 2.5
         }
 

@@ -12,11 +12,18 @@ def load_config(config_file='config.ini'):
     config.read(config_file)
     return {
         'input_cities_file': config['DEFAULT']['input_cities_file'],
+        'output_directory': config['DEFAULT']['output_directory'],
         'extracted_weather_file': config['DEFAULT']['extracted_weather_file'],
         'transformed_weather_file': config['DEFAULT']['transformed_weather_file'],
         'loaded_weather_file': config['DEFAULT']['loaded_weather_file'],
         'pause_duration': float(config['DEFAULT']['pause_duration'])
     }
+
+# Function to ensure the output directory exists
+def ensure_output_directory_exists(output_directory):
+    if not os.path.exists(output_directory):
+        os.makedirs(output_directory)
+        logging.info(f"Created output directory: {output_directory}")
 
 # Function to get API key from environment
 def get_api_key():
@@ -127,6 +134,9 @@ def main():
     # Load configuration and API key
     config = load_config()
     api_key = get_api_key()
+
+    # Ensure output directory exists
+    ensure_output_directory_exists(config['output_directory'])
 
     logging.info("Starting the ETL process.")
     logging.info(f"Input file: {config['input_cities_file']}")

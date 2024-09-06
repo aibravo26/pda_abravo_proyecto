@@ -7,4 +7,4 @@ __pycache__/
 .venv/
 
 # Output
-etl_files/
+etl_output_files/

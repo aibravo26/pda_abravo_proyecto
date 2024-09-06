@@ -7,4 +7,4 @@ __pycache__/
 .venv/
 
 # Output
-world_capitals_weather_data.csv
+etl_files/

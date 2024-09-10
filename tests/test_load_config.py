@@ -4,10 +4,10 @@ import unittest
 import pandas as pd
 from unittest.mock import patch, MagicMock
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from main import load_config
+from utils.utils import load_config
 
 class TestLoadConfig(unittest.TestCase):
-    @patch('main.configparser.ConfigParser')
+    @patch('utils.utils.configparser.ConfigParser')
     def test_load_config(self, mock_config_parser):
         # Mocking the configparser.ConfigParser instance
         mock_config = MagicMock()

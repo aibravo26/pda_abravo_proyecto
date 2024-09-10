@@ -5,19 +5,48 @@ import logging
 import time
 import os
 from datetime import datetime, timezone
+from sqlalchemy import create_engine
 
 # Function to load configuration from the config file
 def load_config(config_file='config.ini'):
+    # Load the configuration from the config file
     config = configparser.ConfigParser()
     config.read(config_file)
+
+    # Return configuration settings
     return {
         'input_cities_file': config['DEFAULT']['input_cities_file'],
         'output_directory': config['DEFAULT']['output_directory'],
         'extracted_weather_file': config['DEFAULT']['extracted_weather_file'],
         'transformed_weather_file': config['DEFAULT']['transformed_weather_file'],
         'loaded_weather_file': config['DEFAULT']['loaded_weather_file'],
-        'pause_duration': float(config['DEFAULT']['pause_duration'])
+        'pause_duration': float(config['DEFAULT']['pause_duration']),
     }
+
+# Function to connect to redshift
+def connect_to_redshift():
+    try:
+        # Load Redshift connection details from environment variables
+        redshift_host = os.getenv('REDSHIFT_HOST')
+        redshift_port = os.getenv('REDSHIFT_PORT')
+        redshift_dbname = os.getenv('REDSHIFT_DBNAME')
+        redshift_user = os.getenv('REDSHIFT_USER')
+        redshift_password = os.getenv('REDSHIFT_PASSWORD')
+
+        # Create the Redshift connection string using SQLAlchemy
+        connection_string = (
+            f'postgresql+psycopg2://{redshift_user}:{redshift_password}'
+            f'@{redshift_host}:{redshift_port}/{redshift_dbname}'
+        )
+
+        # Ensure that no PostgreSQL-specific options are passed
+        engine = create_engine(connection_string, connect_args={"options": ""})
+
+        logging.info("Successfully connected to Redshift using SQLAlchemy")
+        return engine
+    except Exception as e:
+        logging.error(f"Error connecting to Redshift: {e}")
+        raise
 
 # Function to ensure the output directory exists
 def ensure_output_directory_exists(output_directory):
@@ -119,19 +148,35 @@ def transform(extracted_weather_file, transformed_weather_file):
     logging.info(f"Transformed data saved to: {transformed_weather_file}")
     return transformed_weather_file
 
-# Load Phase: Save the final processed data to the final output CSV
+# Load Phase: Save the final processed data to the final output Parquet file
 def load(transformed_weather_file, loaded_weather_file):
     weather_df = pd.read_parquet(transformed_weather_file)
     weather_df.to_parquet(loaded_weather_file, index=False)
     logging.info(f"Final weather data loaded to: {loaded_weather_file}")
-    print(weather_df)
     return loaded_weather_file
 
-# Main function
+# Function to save DataFrame to Redshift using SQLAlchemy
+def save_to_redshift(loaded_weather_file, table_name, engine):
+    try:
+        # Load the Parquet file into a DataFrame
+        df = pd.read_parquet(loaded_weather_file)
+
+        # Get the Redshift schema from environment variable
+        redshift_schema = os.getenv('REDSHIFT_SCHEMA')
+
+        # Save the DataFrame to Redshift using SQLAlchemy
+        df.to_sql(table_name, con=engine, index=False, if_exists='replace', schema=redshift_schema, method='multi')
+
+        logging.info(f"Data successfully uploaded to Redshift schema '{redshift_schema}', table '{table_name}'")
+
+    except Exception as e:
+        logging.error(f"Error uploading data to Redshift: {e}")
+        raise
+    
 def main():
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-    # Load configuration and API key
+    # Load configuration
     config = load_config()
     api_key = get_api_key()
 
@@ -141,15 +186,24 @@ def main():
     logging.info("Starting the ETL process.")
     logging.info(f"Input file: {config['input_cities_file']}")
     logging.info(f"Output file: {config['loaded_weather_file']}")
-    
-    # Extract Phase: Load cities data, process weather data, and save to a CSV
+
+    # Connect to Redshift using SQLAlchemy with redshift_connector
+    redshift_engine = connect_to_redshift()
+
+    # Extract Phase: Load cities data, process weather data, and save to a Parquet file
     extracted_weather_file = extract(config['input_cities_file'], api_key, config['extracted_weather_file'], config['pause_duration'])
 
     # Transform Phase: Add new columns and save the transformed data
     transformed_weather_file = transform(extracted_weather_file, config['transformed_weather_file'])
 
-    # Load Phase: Save the final processed data to the output CSV
+    # Load Phase: Save the final processed data to the output Parquet file and return the file path
     loaded_weather_file = load(transformed_weather_file, config['loaded_weather_file'])
+    
+    # Final Step: Save the loaded weather data to Redshift
+    save_to_redshift(loaded_weather_file, 'staging_api_weather_data', redshift_engine)
+
+    logging.info("ETL process completed successfully.")
+
 
 if __name__ == "__main__":
     main()

@@ -16,9 +16,12 @@ class TestLoadConfig(unittest.TestCase):
         mock_config.__getitem__.return_value = {
             'input_cities_file': 'test_input.csv',
             'output_directory': 'etl_output_files',
-            'extracted_weather_file': 'test_extracted.parquet',
-            'transformed_weather_file': 'test_transformed.parquet',
-            'loaded_weather_file': 'test_loaded.parquet',
+            'extracted_weather_file': 'test_extracted_weather.parquet',
+            'transformed_weather_file': 'test_transformed_weather.parquet',
+            'loaded_weather_file': 'test_loaded_weather.parquet',
+            'extracted_population_file': 'test_extracted_population.parquet',
+            'transformed_population_file': 'test_transformed_population.parquet',
+            'loaded_population_file': 'test_loaded_population.parquet',
             'pause_duration': '2.5'
         }
         
@@ -31,9 +34,12 @@ class TestLoadConfig(unittest.TestCase):
         expected_result = {
             'input_cities_file': 'test_input.csv',
             'output_directory': 'etl_output_files',
-            'extracted_weather_file': 'test_extracted.parquet',
-            'transformed_weather_file': 'test_transformed.parquet',
-            'loaded_weather_file': 'test_loaded.parquet',
+            'extracted_weather_file': 'test_extracted_weather.parquet',
+            'transformed_weather_file': 'test_transformed_weather.parquet',
+            'loaded_weather_file': 'test_loaded_weather.parquet',
+            'extracted_population_file': 'test_extracted_population.parquet',
+            'transformed_population_file': 'test_transformed_population.parquet',
+            'loaded_population_file': 'test_loaded_population.parquet',
             'pause_duration': 2.5
         }
 

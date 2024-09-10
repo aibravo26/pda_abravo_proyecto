@@ -14,6 +14,9 @@ def load_config(config_file='config.ini'):
         'extracted_weather_file': config['DEFAULT']['extracted_weather_file'],
         'transformed_weather_file': config['DEFAULT']['transformed_weather_file'],
         'loaded_weather_file': config['DEFAULT']['loaded_weather_file'],
+        'extracted_population_file': config['DEFAULT']['extracted_population_file'],
+        'transformed_population_file': config['DEFAULT']['transformed_population_file'],
+        'loaded_population_file': config['DEFAULT']['loaded_population_file'],
         'pause_duration': float(config['DEFAULT']['pause_duration']),
     }
 

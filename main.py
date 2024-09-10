@@ -3,7 +3,8 @@ import sys
 import logging
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from etl.extractors.weather_api import extract_weather_data
-from etl.transformers.transform_functions import transform_weather_data
+from etl.extractors.population_api import extract_population_data
+from etl.transformers.transform_functions import transform_execution_dates_addition
 from etl.loaders.load_to_redshift import save_to_redshift
 from utils.utils import load_config, ensure_output_directory_exists, setup_logging
 from utils.redshift_connection import connect_to_redshift
@@ -23,17 +24,23 @@ def main():
     redshift_engine = connect_to_redshift()
 
     # Extract Phase: Load cities data, process weather data, and save to a Parquet file
-    extracted_weather_file = extract_weather_data(
-        config['input_cities_file'], 
-        config['extracted_weather_file'], 
-        config['pause_duration']
-    )
+    extracted_weather_file = extract_weather_data(config['input_cities_file'], config['extracted_weather_file'], config['pause_duration'])    
 
-    # Transform Phase: Add new columns and save the transformed data
-    transformed_weather_file = transform_weather_data(extracted_weather_file, config['transformed_weather_file'])
+    # Extract population data
+    extracted_population_file = extract_population_data(config['input_cities_file'], config['extracted_population_file'], config['pause_duration'])
+
+
+    # Transform weather data
+    transformed_weather_file = transform_execution_dates_addition(extracted_weather_file, config['transformed_weather_file'], 'weather')
+
+    # Transform population data
+    transformed_population_file = transform_execution_dates_addition(extracted_population_file, config['transformed_population_file'], 'population')
 
     # Load Phase: Save the final processed data to the output Parquet file and return the file path
     save_to_redshift(transformed_weather_file, 'staging_api_weather_data', redshift_engine)
+
+    # Load population data into Redshift
+    save_to_redshift(transformed_population_file, 'staging_api_population_data', redshift_engine)
 
     logging.info("ETL process completed successfully.")
 

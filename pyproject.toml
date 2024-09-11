@@ -6,8 +6,9 @@ authors = ["Your Name <you@example.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
+python = ">=3.9,<3.13"
+numpy = "1.26.4"
 pandas = "1.5.3"
-python = ">=3.8,<3.13"
 requests = "^2.32.3"
 pytest = "^8.3.2"
 logging = "^0.4.9.6"

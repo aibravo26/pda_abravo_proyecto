@@ -3,10 +3,10 @@ import sys
 import unittest
 from unittest.mock import patch
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from utils.utils import get_api_key
+from utils import get_api_key
 
 class TestApiKeySuccess(unittest.TestCase):
-    @patch('utils.utils.os.getenv')
+    @patch('utils.os.getenv')
     def test_get_api_key_success(self, mock_getenv):
         # Simulate the environment variable being set
         mock_getenv.return_value = 'dummy_api_key'

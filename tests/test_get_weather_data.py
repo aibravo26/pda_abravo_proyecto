@@ -37,10 +37,6 @@ class TestWeatherData(unittest.TestCase):
             "sys": {
                 "sunrise": 1622527200,
                 "sunset": 1622581200
-            },
-            "coord": {
-                "lon": -0.1257,
-                "lat": 51.5085
             }
         }
 
@@ -72,9 +68,7 @@ class TestWeatherData(unittest.TestCase):
             "weather_main": result["weather"][0]["main"],
             "cloudiness": result["clouds"]["all"],
             "sunrise": result["sys"]["sunrise"],
-            "sunset": result["sys"]["sunset"],
-            "lon": result["coord"]["lon"],
-            "lat": result["coord"]["lat"]
+            "sunset": result["sys"]["sunset"]
         }])
 
         # Expected result DataFrame
@@ -93,9 +87,7 @@ class TestWeatherData(unittest.TestCase):
             "weather_main": "Clear",
             "cloudiness": 0,
             "sunrise": 1622527200,
-            "sunset": 1622581200,
-            "lon": lon,
-            "lat": lat
+            "sunset": 1622581200
         }])
 
         # Compare the DataFrames

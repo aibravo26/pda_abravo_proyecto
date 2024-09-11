@@ -1,7 +1,7 @@
-import configparser
 import os
+import configparser
 import logging
-import logging
+from sqlalchemy import create_engine
 
 def load_config(config_file='config.ini'):
     """Load configuration from the config file."""
@@ -10,21 +10,8 @@ def load_config(config_file='config.ini'):
 
     return {
         'input_cities_file': config['DEFAULT']['input_cities_file'],
-        'output_directory': config['DEFAULT']['output_directory'],
-        'extracted_weather_file': config['DEFAULT']['extracted_weather_file'],
-        'transformed_weather_file': config['DEFAULT']['transformed_weather_file'],
-        'loaded_weather_file': config['DEFAULT']['loaded_weather_file'],
-        'extracted_population_file': config['DEFAULT']['extracted_population_file'],
-        'transformed_population_file': config['DEFAULT']['transformed_population_file'],
-        'loaded_population_file': config['DEFAULT']['loaded_population_file'],
         'pause_duration': float(config['DEFAULT']['pause_duration']),
     }
-
-def ensure_output_directory_exists(output_directory):
-    """Ensure the output directory exists, create it if not."""
-    if not os.path.exists(output_directory):
-        os.makedirs(output_directory)
-        logging.info(f"Created output directory: {output_directory}")
 
 def setup_logging():
     """Setup logging configuration."""
@@ -44,3 +31,24 @@ def get_api_key(api_name):
         raise ValueError(f"No API key found for {api_name}. Please set the {api_name}_API_KEY environment variable.")
     logging.info(f"Successfully retrieved API key for {api_name}")
     return api_key
+
+def connect_to_redshift():
+    """Connect to Redshift using SQLAlchemy."""
+    try:
+        redshift_host = os.getenv('REDSHIFT_HOST')
+        redshift_port = os.getenv('REDSHIFT_PORT')
+        redshift_dbname = os.getenv('REDSHIFT_DBNAME')
+        redshift_user = os.getenv('REDSHIFT_USER')
+        redshift_password = os.getenv('REDSHIFT_PASSWORD')
+
+        connection_string = (
+            f'postgresql+psycopg2://{redshift_user}:{redshift_password}'
+            f'@{redshift_host}:{redshift_port}/{redshift_dbname}'
+        )
+
+        engine = create_engine(connection_string, connect_args={"options": ""})
+        logging.info("Successfully connected to Redshift using SQLAlchemy")
+        return engine
+    except Exception as e:
+        logging.error(f"Error connecting to Redshift: {e}")
+        raise

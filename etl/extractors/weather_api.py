@@ -5,7 +5,7 @@ import requests
 import pandas as pd
 import time
 import logging
-from utils.utils import get_api_key 
+from utils import get_api_key 
 
 def get_weather_data(lat, lon, api_key):
     """Fetch weather data from OpenWeatherMap API."""
@@ -45,12 +45,10 @@ def process_city_weather(city, api_key):
         "visibility": city_weather.get("visibility", "N/A"),
         "wind_speed": city_weather["wind"]["speed"],
         "wind_deg": city_weather["wind"]["deg"],
-        "weather": city_weather["weather"][0]["description"],
-        "lat": city["lat"],
-        "lon": city["lon"]
+        "weather": city_weather["weather"][0]["description"]
     }
 
-def extract_weather_data(input_cities_file, output_file, pause_duration):
+def extract_weather_data(input_cities_file, pause_duration):
     """Extract weather data for cities."""
 
     api_key = get_api_key('OPENWEATHERMAP')
@@ -68,9 +66,8 @@ def extract_weather_data(input_cities_file, output_file, pause_duration):
 
         # Save extracted weather data to Parquet file
         weather_df = pd.DataFrame(weather_data)
-        weather_df.to_parquet(output_file, index=False)
-        logging.info(f"Extracted weather data saved to: {output_file}")
-        return output_file
+        logging.info("Extract process completed successfully")
+        return weather_df
     except FileNotFoundError:
         logging.error(f"File not found: {input_cities_file}")
         raise

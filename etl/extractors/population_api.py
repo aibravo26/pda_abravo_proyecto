@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 import requests
 import pandas as pd
 import time
-from utils.utils import get_api_key
+from utils import get_api_key
 
 def get_population_data(lat, lon, username):
     """Retrieve population data from GeoNames API based on latitude and longitude."""
@@ -41,7 +41,7 @@ def get_population_data(lat, lon, username):
         logging.error(f"Error retrieving population data for lat={lat}, lon={lon}: {e}")
         return None
 
-def extract_population_data(input_cities_file, output_file, pause_duration):
+def extract_population_data(input_cities_file, pause_duration):
     """Extract population data for cities based on lat/lon coordinates."""
     try:
         # Retrieve the GeoNames username from environment variables using the utility
@@ -57,17 +57,14 @@ def extract_population_data(input_cities_file, output_file, pause_duration):
             population_data.append({
                 'country': city['country'],
                 'capital_city': city['capital_city'],
-                'population': population,  # This will be either an integer or None
-                'lat': city['lat'],
-                'lon': city['lon']
+                'population': population  # This will be either an integer or None
             })
             time.sleep(pause_duration)
 
         # Save extracted population data to a Parquet file
         population_df = pd.DataFrame(population_data)
-        population_df.to_parquet(output_file, index=False)
-        logging.info(f"Extracted population data saved to: {output_file}")
-        return output_file
+        logging.info("Extract process completed successfully")
+        return population_df
     except FileNotFoundError:
         logging.error(f"File not found: {input_cities_file}")
         raise

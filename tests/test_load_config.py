@@ -4,10 +4,10 @@ import unittest
 import pandas as pd
 from unittest.mock import patch, MagicMock
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from utils.utils import load_config
+from utils import load_config
 
 class TestLoadConfig(unittest.TestCase):
-    @patch('utils.utils.configparser.ConfigParser')
+    @patch('utils.configparser.ConfigParser')
     def test_load_config(self, mock_config_parser):
         # Mocking the configparser.ConfigParser instance
         mock_config = MagicMock()
@@ -15,13 +15,6 @@ class TestLoadConfig(unittest.TestCase):
         # Mocking the 'DEFAULT' section access
         mock_config.__getitem__.return_value = {
             'input_cities_file': 'test_input.csv',
-            'output_directory': 'etl_output_files',
-            'extracted_weather_file': 'test_extracted_weather.parquet',
-            'transformed_weather_file': 'test_transformed_weather.parquet',
-            'loaded_weather_file': 'test_loaded_weather.parquet',
-            'extracted_population_file': 'test_extracted_population.parquet',
-            'transformed_population_file': 'test_transformed_population.parquet',
-            'loaded_population_file': 'test_loaded_population.parquet',
             'pause_duration': '2.5'
         }
         
@@ -33,13 +26,6 @@ class TestLoadConfig(unittest.TestCase):
         # Expected output
         expected_result = {
             'input_cities_file': 'test_input.csv',
-            'output_directory': 'etl_output_files',
-            'extracted_weather_file': 'test_extracted_weather.parquet',
-            'transformed_weather_file': 'test_transformed_weather.parquet',
-            'loaded_weather_file': 'test_loaded_weather.parquet',
-            'extracted_population_file': 'test_extracted_population.parquet',
-            'transformed_population_file': 'test_transformed_population.parquet',
-            'loaded_population_file': 'test_loaded_population.parquet',
             'pause_duration': 2.5
         }
 

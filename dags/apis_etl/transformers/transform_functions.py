@@ -5,9 +5,9 @@ import logging
 def transform_execution_dates_addition(df, data_type):
     """Generic function to transform data (weather or population), adding timestamps."""
     try:
-        # Add current timestamp in UTC and current date
-        df['execution_timestamp_utc'] = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
-        df['execution_date'] = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+        # Add current timestamp in UTC and current date as timestamp types
+        df['execution_timestamp_utc'] = pd.Timestamp(datetime.now(timezone.utc))  # Timestamp with timezone
+        df['execution_date'] = pd.Timestamp(datetime.now(timezone.utc).date())  # Timestamp for just the date
 
         # Save the transformed DataFrame
         logging.info(f"Transformed {data_type} successfully")

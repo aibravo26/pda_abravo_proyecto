@@ -12,7 +12,10 @@ from apis_etl.extractors.population_api import extract_population_data
 from apis_etl.transformers.transform_functions import transform_execution_dates_addition
 from apis_etl.loaders.load_to_redshift import save_to_redshift
 from apis_etl.utils import load_config, setup_logging, connect_to_redshift
-from redshift.tables_creation import create_tables_if_not_exist as create_redshift_tables
+from dags.database.db_initialization import create_tables_if_not_exist as create_redshift_tables
+from dags.database.dim_cities import check_new_citites_additions
+from dags.database.dim_population import check_population_updates
+from dags.database.fact_weather_metrics import load_incremental_weather_data
 
 # Define the default_args for the DAG
 default_args = {
@@ -31,11 +34,10 @@ with DAG(
 
     def load_config_task(**kwargs):
         """Step 1: Load configuration."""
-        global config
         setup_logging()
         config = load_config()
         logging.info("Configuration loaded.")
-        return config  # This pushes the config to XCom
+        return config
     
     def extract_transform_load_cities(**kwargs):
         """Step 3: Extract, transform, and load cities data."""
@@ -52,7 +54,7 @@ with DAG(
         ti = kwargs['ti']
         config = ti.xcom_pull(task_ids='load_config')
         redshift_engine = connect_to_redshift()
-        config = ti.xcom_pull(task_ids='load_config')  # Pull config from XCom
+        config = ti.xcom_pull(task_ids='load_config')
         extracted_weather_df = extract_weather_data(config['input_cities_file'], config['pause_duration'])
         transformed_weather_df = transform_execution_dates_addition(extracted_weather_df, 'weather')
         save_to_redshift(transformed_weather_df, 'staging_api_weather_data', redshift_engine)
@@ -63,15 +65,31 @@ with DAG(
         ti = kwargs['ti']
         config = ti.xcom_pull(task_ids='load_config')
         redshift_engine = connect_to_redshift()
-        config = ti.xcom_pull(task_ids='load_config')  # Pull config from XCom
+        config = ti.xcom_pull(task_ids='load_config')
         extracted_population_df = extract_population_data(config['input_cities_file'], config['pause_duration'])
         transformed_population_df = transform_execution_dates_addition(extracted_population_df, 'population')
         save_to_redshift(transformed_population_df, 'staging_api_population_data', redshift_engine)
         logging.info("Population data loaded into Redshift.")
 
-    def create_tables_task(**kwargs):
-        """Create Redshift tables if they don't exist."""
-        create_redshift_tables()
+    def initialize_db(**kwargs):
+        """Step 6: Initialize DWH Procedures"""
+        redshift_engine = connect_to_redshift()
+        create_redshift_tables(redshift_engine)
+
+    def process_dim_cities(**kwargs):
+        """Step 7: Check/Add new cities to dimension"""
+        redshift_engine = connect_to_redshift()
+        check_new_citites_additions(redshift_engine)     
+
+    def process_dim_population(**kwargs):
+        """Step 8: Check/Update population in SC2 dimension"""
+        redshift_engine = connect_to_redshift()
+        check_population_updates(redshift_engine)
+
+    def process_fact_weather_metrics(**kwargs):
+        """Step 8: Check/Update population in SC2 dimension"""
+        redshift_engine = connect_to_redshift()
+        load_incremental_weather_data(redshift_engine)
 
 
     # Define the tasks
@@ -95,10 +113,25 @@ with DAG(
         python_callable=extract_transform_load_population
     )
 
-    create_tables_op = PythonOperator(
-        task_id='create_tables_if_not_exist',
-        python_callable=create_tables_task  # Call the new function name
+    initialize_db_op = PythonOperator(
+        task_id='initialize_db',
+        python_callable=initialize_db
+    )
+
+    process_dim_cities_op = PythonOperator(
+        task_id='process_dim_cities',
+        python_callable=process_dim_cities
+    )
+
+    process_dim_population_op = PythonOperator(
+        task_id='process_dim_population',
+        python_callable=process_dim_population
+    )
+
+    process_fact_weather_metrics_op = PythonOperator(
+        task_id='process_fact_weather_metrics',
+        python_callable=process_fact_weather_metrics
     )
 
     # Define task dependencies
-    load_config_op >> etl_cities_op >> etl_weather_op >> etl_population_op >> create_tables_op
+    load_config_op >> etl_cities_op >> etl_weather_op >> etl_population_op >> initialize_db_op >> process_dim_cities_op >> process_dim_population_op >> process_fact_weather_metrics_op

@@ -20,7 +20,7 @@ class TestApiKeySuccess(unittest.TestCase):
         # Check that the correct environment variable is used
         mock_getenv.assert_called_with('OPENWEATHERMAP_API_KEY')
 
-    @patch('main.os.getenv')
+    @patch('os.getenv')
     def test_get_api_key_not_set(self, mock_getenv):
         # Simulate the environment variable not being set
         mock_getenv.return_value = None

@@ -1,16 +1,11 @@
 # Python
+*.so
 *.py[cod]
 __pycache__/
-*.so
-input_cities_sample.csv
+.venv/
 logs/
+input_cities_sample.csv
 airflow.cfg
 airflow.db
 standalone_admin_password.txt
 webserver_config.py
-
-# Virtual environment
-.venv/
-
-# Output
-etl_output_files/

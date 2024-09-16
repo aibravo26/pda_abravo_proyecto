@@ -24,6 +24,13 @@ default_args = {
     'retries': 1,
 }
 
+# Define a helper function to pull XCom and Redshift connection
+def get_config_and_redshift(ti):
+    """Helper to get config and Redshift engine."""
+    config = ti.xcom_pull(task_ids='load_config')
+    redshift_engine = connect_to_redshift()
+    return config, redshift_engine
+
 # Define the DAG
 with DAG(
     dag_id='etl_process_dag',
@@ -40,57 +47,83 @@ with DAG(
         return config
     
     def extract_transform_load_cities(**kwargs):
-        """Step 3: Extract, transform, and load cities data."""
+        """Step 2: Extract, transform, and load cities data."""
         ti = kwargs['ti']
-        config = ti.xcom_pull(task_ids='load_config')
-        redshift_engine = connect_to_redshift()
-        extracted_cities_df = extract_cities_data(config['input_cities_file'])
-        transformed_cities_df = transform_execution_dates_addition(extracted_cities_df, 'cities')
-        save_to_redshift(transformed_cities_df, 'staging_cities', redshift_engine)
-        logging.info("Cities data loaded into Redshift.")
-    
+        config, redshift_engine = get_config_and_redshift(ti)
+        try:
+            extracted_cities_df = extract_cities_data(config['input_cities_file'])
+            transformed_cities_df = transform_execution_dates_addition(extracted_cities_df, 'cities')
+            save_to_redshift(transformed_cities_df, 'staging_cities', redshift_engine)
+            logging.info("Cities data loaded into Redshift.")
+        except Exception as e:
+            logging.error(f"Failed to load cities data: {e}")
+            raise
+
     def extract_transform_load_weather(**kwargs):
-        """Step 4: Extract, transform, and load weather data."""
+        """Step 3: Extract, transform, and load weather data."""
         ti = kwargs['ti']
-        config = ti.xcom_pull(task_ids='load_config')
-        redshift_engine = connect_to_redshift()
-        config = ti.xcom_pull(task_ids='load_config')
-        extracted_weather_df = extract_weather_data(config['input_cities_file'], config['pause_duration'])
-        transformed_weather_df = transform_execution_dates_addition(extracted_weather_df, 'weather')
-        save_to_redshift(transformed_weather_df, 'staging_api_weather_data', redshift_engine)
-        logging.info("Weather data loaded into Redshift.")
-    
+        config, redshift_engine = get_config_and_redshift(ti)
+        try:
+            extracted_weather_df = extract_weather_data(config['input_cities_file'], config['pause_duration'])
+            transformed_weather_df = transform_execution_dates_addition(extracted_weather_df, 'weather')
+            save_to_redshift(transformed_weather_df, 'staging_api_weather_data', redshift_engine)
+            logging.info("Weather data loaded into Redshift.")
+        except Exception as e:
+            logging.error(f"Failed to load weather data: {e}")
+            raise
+
     def extract_transform_load_population(**kwargs):
-        """Step 5: Extract, transform, and load population data."""
+        """Step 4: Extract, transform, and load population data."""
         ti = kwargs['ti']
-        config = ti.xcom_pull(task_ids='load_config')
-        redshift_engine = connect_to_redshift()
-        config = ti.xcom_pull(task_ids='load_config')
-        extracted_population_df = extract_population_data(config['input_cities_file'], config['pause_duration'])
-        transformed_population_df = transform_execution_dates_addition(extracted_population_df, 'population')
-        save_to_redshift(transformed_population_df, 'staging_api_population_data', redshift_engine)
-        logging.info("Population data loaded into Redshift.")
+        config, redshift_engine = get_config_and_redshift(ti)
+        try:
+            extracted_population_df = extract_population_data(config['input_cities_file'], config['pause_duration'])
+            transformed_population_df = transform_execution_dates_addition(extracted_population_df, 'population')
+            save_to_redshift(transformed_population_df, 'staging_api_population_data', redshift_engine)
+            logging.info("Population data loaded into Redshift.")
+        except Exception as e:
+            logging.error(f"Failed to load population data: {e}")
+            raise
 
     def initialize_db(**kwargs):
-        """Step 6: Initialize DWH Procedures"""
+        """Step 5: Initialize Redshift database tables if they don't exist."""
         redshift_engine = connect_to_redshift()
-        create_redshift_tables(redshift_engine)
+        try:
+            create_redshift_tables(redshift_engine)
+            logging.info("Redshift tables initialized.")
+        except Exception as e:
+            logging.error(f"Failed to initialize Redshift tables: {e}")
+            raise
 
     def process_dim_cities(**kwargs):
-        """Step 7: Check/Add new cities to dimension"""
+        """Step 6: Process dimensional data for cities."""
         redshift_engine = connect_to_redshift()
-        check_new_citites_additions(redshift_engine)     
+        try:
+            check_new_citites_additions(redshift_engine)
+            logging.info("Processed new city additions.")
+        except Exception as e:
+            logging.error(f"Failed to process city additions: {e}")
+            raise
 
     def process_dim_population(**kwargs):
-        """Step 8: Check/Update population in SC2 dimension"""
+        """Step 7: Process dimensional data for population."""
         redshift_engine = connect_to_redshift()
-        check_population_updates(redshift_engine)
+        try:
+            check_population_updates(redshift_engine)
+            logging.info("Processed population updates.")
+        except Exception as e:
+            logging.error(f"Failed to process population updates: {e}")
+            raise
 
     def process_fact_weather_metrics(**kwargs):
-        """Step 8: Check/Update population in SC2 dimension"""
+        """Step 8: Load incremental weather data into fact table."""
         redshift_engine = connect_to_redshift()
-        load_incremental_weather_data(redshift_engine)
-
+        try:
+            load_incremental_weather_data(redshift_engine)
+            logging.info("Loaded incremental weather data.")
+        except Exception as e:
+            logging.error(f"Failed to load weather data: {e}")
+            raise
 
     # Define the tasks
     load_config_op = PythonOperator(
@@ -134,4 +167,5 @@ with DAG(
     )
 
     # Define task dependencies
-    load_config_op >> etl_cities_op >> etl_weather_op >> etl_population_op >> initialize_db_op >> process_dim_cities_op >> process_dim_population_op >> process_fact_weather_metrics_op
+    load_config_op >> etl_cities_op >> etl_weather_op >> etl_population_op >> initialize_db_op \
+    >> process_dim_cities_op >> process_dim_population_op >> process_fact_weather_metrics_op

@@ -5,7 +5,7 @@ import requests
 import pandas as pd
 import time
 import logging
-from utils import get_api_key 
+from dags.apis_etl.utils import get_api_key 
 
 def get_weather_data(lat, lon, api_key):
     """Fetch weather data from OpenWeatherMap API."""

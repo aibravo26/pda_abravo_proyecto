@@ -3,12 +3,12 @@ import sys
 import logging
 import pandas as pd
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from etl.extractors.cities import extract_cities_data
-from etl.extractors.weather_api import extract_weather_data
-from etl.extractors.population_api import extract_population_data
-from etl.transformers.transform_functions import transform_execution_dates_addition
-from etl.loaders.load_to_redshift import save_to_redshift
-from utils import load_config, setup_logging, connect_to_redshift
+from dags.apis_etl.extractors.cities import extract_cities_data
+from dags.apis_etl.extractors.weather_api import extract_weather_data
+from dags.apis_etl.extractors.population_api import extract_population_data
+from dags.apis_etl.transformers.transform_functions import transform_execution_dates_addition
+from dags.apis_etl.loaders.load_to_redshift import save_to_redshift
+from dags.apis_etl.utils import load_config, setup_logging, connect_to_redshift
 
 def main():
     setup_logging()

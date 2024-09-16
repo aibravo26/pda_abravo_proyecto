@@ -4,10 +4,10 @@ import unittest
 import pandas as pd
 from unittest.mock import patch
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from etl.extractors.weather_api import get_weather_data
+from dags.apis_etl.extractors.weather_api import get_weather_data
 
 class TestWeatherData(unittest.TestCase):
-    @patch('etl.extractors.weather_api.requests.get')
+    @patch('dags.apis_etl.extractors.weather_api.requests.get')
     def test_get_weather_data(self, mock_get):
         # Mock response data from OpenWeatherMap API
         mock_response = {

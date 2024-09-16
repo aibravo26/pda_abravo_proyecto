@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 import requests
 import pandas as pd
 import time
-from utils import get_api_key
+from dags.apis_etl.utils import get_api_key
 
 def get_population_data(lat, lon, username):
     """Retrieve population data from GeoNames API based on latitude and longitude."""

@@ -3,7 +3,7 @@ import configparser
 import logging
 from sqlalchemy import create_engine
 
-def load_config(config_file='config.ini'):
+def load_config(config_file='config/config.ini'):
     """Load configuration from the config file."""
     config = configparser.ConfigParser()
     config.read(config_file)

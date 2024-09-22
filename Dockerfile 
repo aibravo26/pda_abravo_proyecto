@@ -1,0 +1,22 @@
+FROM python:3.10-slim
+
+# Set the working directory
+WORKDIR /app
+
+# Copy pyproject.toml and poetry.lock first
+COPY pyproject.toml poetry.lock /app/
+
+# Install Poetry
+RUN pip install poetry
+
+# Install dependencies without dev dependencies
+RUN poetry config virtualenvs.create false && poetry install --no-dev
+
+# Copy the rest of the app
+COPY . /app
+
+# Expose Airflow's default port
+EXPOSE 8080
+
+# Set the entry point for the Airflow standalone server
+CMD ["airflow", "standalone"]

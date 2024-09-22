@@ -3,6 +3,7 @@
 *.py[cod]
 __pycache__/
 .venv/
+.env
 logs/
 airflow*
 input_cities_sample.csv

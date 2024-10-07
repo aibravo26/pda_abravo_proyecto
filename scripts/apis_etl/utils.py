@@ -1,6 +1,7 @@
 import os
 import configparser
 import logging
+import pandas as pd
 from sqlalchemy import create_engine
 
 def load_config(config_file='config/config.ini'):
@@ -27,7 +28,6 @@ def get_api_key(api_name):
     """
     api_key = os.getenv(f'{api_name}_API_KEY')
     if not api_key:
-        logging.error(f"No API key found for {api_name}. Please set the {api_name}_API_KEY environment variable.")
         raise ValueError(f"No API key found for {api_name}. Please set the {api_name}_API_KEY environment variable.")
     logging.info(f"Successfully retrieved API key for {api_name}")
     return api_key

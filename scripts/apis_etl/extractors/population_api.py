@@ -5,7 +5,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 import requests
 import pandas as pd
 import time
-from dags.apis_etl.utils import get_api_key
+from scripts.apis_etl.utils import get_api_key
 
 def get_population_data(lat, lon, username):
     """Retrieve population data from GeoNames API based on latitude and longitude."""
@@ -66,7 +66,6 @@ def extract_population_data(input_cities_file, pause_duration):
         logging.info("Extract process completed successfully")
         return population_df
     except FileNotFoundError:
-        logging.error(f"File not found: {input_cities_file}")
         raise
     except Exception as e:
         logging.error(f"An error occurred during extraction: {e}")

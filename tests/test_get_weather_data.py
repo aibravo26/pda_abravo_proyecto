@@ -3,11 +3,12 @@ import sys
 import unittest
 import pandas as pd
 from unittest.mock import patch
+
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from dags.apis_etl.extractors.weather_api import get_weather_data
+from scripts.apis_etl.extractors.weather_api import get_weather_data, convert_weather_data_to_df
 
 class TestWeatherData(unittest.TestCase):
-    @patch('dags.apis_etl.extractors.weather_api.requests.get')
+    @patch('scripts.apis_etl.extractors.weather_api.requests.get')
     def test_get_weather_data(self, mock_get):
         # Mock response data from OpenWeatherMap API
         mock_response = {
@@ -49,27 +50,11 @@ class TestWeatherData(unittest.TestCase):
         lon = -0.1257
         api_key = "dummy_key"
 
-        # Call the function
+        # Call the function to get weather data
         result = get_weather_data(lat, lon, api_key)
 
-        # Convert the result to a DataFrame
-        result_df = pd.DataFrame([{
-            "temperature": result["main"]["temp"],
-            "feels_like": result["main"]["feels_like"],
-            "min_temperature": result["main"]["temp_min"],
-            "max_temperature": result["main"]["temp_max"],
-            "pressure": result["main"]["pressure"],
-            "humidity": result["main"]["humidity"],
-            "visibility": result.get("visibility", "N/A"),
-            "wind_speed": result["wind"]["speed"],
-            "wind_deg": result["wind"]["deg"],
-            "wind_gust": result["wind"].get("gust", "N/A"),
-            "weather": result["weather"][0]["description"],
-            "weather_main": result["weather"][0]["main"],
-            "cloudiness": result["clouds"]["all"],
-            "sunrise": result["sys"]["sunrise"],
-            "sunset": result["sys"]["sunset"]
-        }])
+        # Convert the result using the imported function
+        result_df = convert_weather_data_to_df(result)
 
         # Expected result DataFrame
         expected_result_df = pd.DataFrame([{

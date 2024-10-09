@@ -4,7 +4,7 @@ Here’s a brief overview of the project: it involves a script that extracts dat
 
 ## Data Flow
 
-The models in the staging area (`staging_cities`, `staging_api_population_data`, `staging_api_weather_data`) are overwritten each time the DAG is executed. These models then feed the star schema
+The models in the staging area (`staging_cities`, `staging_api_population_data`, `staging_api_weather_data`) are overwritten each time the DAG is executed. These models then feed the star schema.
 
 ![image](https://github.com/user-attachments/assets/6a0faa58-a30d-4d82-924d-af0798457bdd)
 

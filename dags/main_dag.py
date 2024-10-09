@@ -17,14 +17,12 @@ from scripts.database.dim_cities import check_new_citites_additions
 from scripts.database.dim_population import check_population_updates
 from scripts.database.fact_weather_metrics import load_incremental_weather_data
 
-# Define the default_args for the DAG
 default_args = {
     'owner': 'airflow',
-    'start_date': datetime(2024, 10, 18),
+    'start_date': datetime(2024, 10, 1),
     'retries': 1,
 }
 
-# Define a helper function to pull XCom and Redshift connection
 def get_config_and_redshift(ti):
     """Helper to get config and Redshift engine."""
     config = ti.xcom_pull(task_ids='load_config')
@@ -60,44 +58,66 @@ def extract_transform_load_generic(extract_func, transform_type, table_name, req
         logging.error(f"Failed to load {transform_type} data: {e}")
         raise
 
-def initialize_db(**kwargs):
-    """Initialize Redshift database tables if they don't exist."""
+def extract_transform_load_sources(**kwargs):
+    """Consolidate ETL steps for cities, weather, and population using the generic function."""
+    try:
+        # Reusing the generic function for cities ETL
+        extract_transform_load_generic(
+            extract_func=extract_cities_data,
+            transform_type='cities',
+            table_name='staging_cities',
+            requires_pause_duration=False,
+            **kwargs
+        )
+        logging.info("Cities data ETL completed.")
+
+        # Reusing the generic function for weather ETL
+        extract_transform_load_generic(
+            extract_func=extract_weather_data,
+            transform_type='weather',
+            table_name='staging_api_weather_data',
+            requires_pause_duration=True,
+            **kwargs
+        )
+        logging.info("Weather data ETL completed.")
+
+        # Reusing the generic function for population ETL
+        extract_transform_load_generic(
+            extract_func=extract_population_data,
+            transform_type='population',
+            table_name='staging_api_population_data',
+            requires_pause_duration=True,
+            **kwargs
+        )
+        logging.info("Population data ETL completed.")
+
+    except Exception as e:
+        logging.error(f"Failed to execute consolidated ETL for cities, weather, and population: {e}")
+        raise
+
+
+def initialize_and_process_db(**kwargs):
+    """Initialize Redshift tables and process cities, population, and weather data."""
     redshift_engine = connect_to_redshift()
     try:
+        # Initialize tables
         create_redshift_tables(redshift_engine)
         logging.info("Redshift tables initialized.")
-    except Exception as e:
-        logging.error(f"Failed to initialize Redshift tables: {e}")
-        raise
-
-def process_dim_cities(**kwargs):
-    """Process dimensional data for cities."""
-    redshift_engine = connect_to_redshift()
-    try:
+        
+        # Process city additions
         check_new_citites_additions(redshift_engine)
         logging.info("Processed new city additions.")
-    except Exception as e:
-        logging.error(f"Failed to process city additions: {e}")
-        raise
-
-def process_dim_population(**kwargs):
-    """Process dimensional data for population."""
-    redshift_engine = connect_to_redshift()
-    try:
+        
+        # Process population updates
         check_population_updates(redshift_engine)
         logging.info("Processed population updates.")
-    except Exception as e:
-        logging.error(f"Failed to process population updates: {e}")
-        raise
-
-def process_fact_weather_metrics(**kwargs):
-    """Load incremental weather data into fact table."""
-    redshift_engine = connect_to_redshift()
-    try:
+        
+        # Load incremental weather data
         load_incremental_weather_data(redshift_engine)
         logging.info("Loaded incremental weather data.")
+        
     except Exception as e:
-        logging.error(f"Failed to load weather data: {e}")
+        logging.error(f"Failed to initialize and process data: {e}")
         raise
 
 # Define the DAG
@@ -114,59 +134,15 @@ with DAG(
         python_callable=load_config_task
     )
 
-    etl_cities_op = PythonOperator(
-        task_id='extract_transform_load_cities',
-        python_callable=extract_transform_load_generic,
-        op_kwargs={
-            'extract_func': extract_cities_data,
-            'transform_type': 'cities',
-            'table_name': 'staging_cities',
-            'requires_pause_duration': False
-        }
+    extract_transform_load_sources_op = PythonOperator(
+        task_id='extract_transform_load_sources',
+        python_callable=extract_transform_load_sources
     )
 
-    etl_weather_op = PythonOperator(
-        task_id='extract_transform_load_weather',
-        python_callable=extract_transform_load_generic,
-        op_kwargs={
-            'extract_func': extract_weather_data,
-            'transform_type': 'weather',
-            'table_name': 'staging_api_weather_data',
-            'requires_pause_duration': True
-        }
-    )
-
-    etl_population_op = PythonOperator(
-        task_id='extract_transform_load_population',
-        python_callable=extract_transform_load_generic,
-        op_kwargs={
-            'extract_func': extract_population_data,
-            'transform_type': 'population',
-            'table_name': 'staging_api_population_data',
-            'requires_pause_duration': True
-        }
-    )
-
-    initialize_db_op = PythonOperator(
-        task_id='initialize_db',
-        python_callable=initialize_db
-    )
-
-    process_dim_cities_op = PythonOperator(
-        task_id='process_dim_cities',
-        python_callable=process_dim_cities
-    )
-
-    process_dim_population_op = PythonOperator(
-        task_id='process_dim_population',
-        python_callable=process_dim_population
-    )
-
-    process_fact_weather_metrics_op = PythonOperator(
-        task_id='process_fact_weather_metrics',
-        python_callable=process_fact_weather_metrics
+    initialize_and_process_db_op  = PythonOperator(
+        task_id='initialize_and_process_db',
+        python_callable=initialize_and_process_db
     )
 
     # Define task dependencies
-    load_config_op >> etl_cities_op >> etl_weather_op >> etl_population_op >> initialize_db_op \
-    >> process_dim_cities_op >> process_dim_population_op >> process_fact_weather_metrics_op
+    load_config_op >> extract_transform_load_sources_op >> initialize_and_process_db_op 

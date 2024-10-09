@@ -9,3 +9,5 @@ The models in the staging area (`staging_cities`, `staging_api_population_data`,
 - **dim_cities**: A dimension table for cities, where new cities are added as they appear in `staging_cities`.
 - **dim_population**: An SCD2-type population dimension that stores the population of cities and their evolution over time. It includes fields such as `effective_date`, `expiration_date`, and `is_current`.
 - **fact_weather_metrics**: An incremental fact table that stores weather metrics. This model adds new data on each DAG execution. Being an incremental model, it uses the `date` and `execution timestamp` as keys to ensure new information is stored with every run.
+
+![image](https://github.com/user-attachments/assets/6a0faa58-a30d-4d82-924d-af0798457bdd)

@@ -11,3 +11,7 @@ The models in the staging area (`staging_cities`, `staging_api_population_data`,
 - **fact_weather_metrics**: An incremental fact table that stores weather metrics. This model adds new data on each DAG execution. Being an incremental model, it uses the `date` and `execution timestamp` as keys to ensure new information is stored with every run.
 
 ![image](https://github.com/user-attachments/assets/6a0faa58-a30d-4d82-924d-af0798457bdd)
+
+## Star Schema Structure
+
+![DB ERD](https://github.com/user-attachments/assets/4875a92c-9fd7-4e94-b892-4a9a8dc23504)

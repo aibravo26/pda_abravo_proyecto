@@ -1,6 +1,9 @@
 ## Project Overview
 
 Here’s a brief overview of the project: it involves a script that extracts data from two APIs (weather and population) for a set of cities defined in an input file. The data is then stored in a staging area within Redshift, with the aim of creating a star schema.
+* [Open Weather Map](https://openweathermap.org/)
+* [GeoNames](https://www.geonames.org/)
+
 
 ## Data Flow
 

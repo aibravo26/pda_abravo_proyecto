@@ -1,6 +1,11 @@
+"""
+This module provides functionality to incrementally load weather data from a staging table 
+into the fact_weather_metrics table in Redshift. The process ensures that only new records 
+are inserted.
+"""
+
 import os
 import logging
-from sqlalchemy import text
 
 def load_incremental_weather_data(engine):
     """Load incremental weather data into fact_weather_metrics."""
@@ -9,7 +14,7 @@ def load_incremental_weather_data(engine):
     schema_name = f'"{os.getenv("REDSHIFT_SCHEMA")}"' 
 
     try:
-        logging.info(f"Starting incremental load for fact_weather_metrics in schema '{schema_name}'.")
+        logging.info("Starting incremental load for fact_weather_metrics in schema '%s'.", schema_name)
 
         incremental_load_sql = f"""
         BEGIN TRANSACTION;
@@ -45,9 +50,9 @@ def load_incremental_weather_data(engine):
         """
 
         with engine.connect() as connection:
-            logging.info(f"Executing incremental load for fact_weather_metrics in schema '{schema_name}'.")
+            logging.info("Executing incremental load for fact_weather_metrics in schema '%s'.", schema_name)
             connection.execute(incremental_load_sql)
-        logging.info(f"fact_weather_metrics updated successfully in schema '{schema_name}'.")
+        logging.info("fact_weather_metrics updated successfully in schema '%s'.", schema_name)
     except Exception as e:
-        logging.error(f"Error updating fact_weather_metrics: {e}")
+        logging.error("Error updating fact_weather_metrics: %s", e)
         raise

@@ -1,13 +1,23 @@
-import os
-import sys
+"""
+This module provides functions to extract and process weather data from the OpenWeatherMap API. 
+It converts the weather data into pandas DataFrames and handles multiple cities.
+"""
+
+import os  # Standard library import
+import sys  # Standard library import
+import time  # Standard library import
+import logging  # Standard library import
+
+import requests  # Third-party import
+import pandas as pd  # Third-party import
+
+from scripts.apis_etl.utils import get_api_key  # Local application import
+
+# Insert your project directory to the system path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-import requests
-import pandas as pd
-import time
-import logging
-from scripts.apis_etl.utils import get_api_key
 
 def convert_weather_data_to_df(weather_data):
+    """Convert Weather Dict to Dataframe"""
     return pd.DataFrame([{
         "temperature": weather_data["main"]["temp"],
         "feels_like": weather_data["main"]["feels_like"],
@@ -36,14 +46,23 @@ def get_weather_data(lat, lon, api_key):
             'appid': api_key,
             'units': 'metric'
         }
-        response = requests.get(base_url, params=params)
+        response = requests.get(base_url, params=params, timeout=10)
         response.raise_for_status()
-        logging.info(f"Retrieved weather data for lat={lat}, lon={lon}")
+        logging.info("Retrieved weather data for lat=%s, lon=%s", lat, lon)
         return response.json()
+    
+    except requests.exceptions.Timeout:
+        logging.error("Timeout occurred while fetching weather data for lat=%s, lon=%s", lat, lon)
+    
+    except requests.exceptions.ConnectionError:
+        logging.error("Connection error occurred while fetching weather data for lat=%s, lon=%s", lat, lon)
+    
     except requests.exceptions.HTTPError as http_err:
-        logging.error(f"HTTP error occurred: {http_err}")
-    except Exception as e:
-        logging.error(f"Error retrieving weather data for lat={lat}, lon={lon}: {e}")
+        logging.error("HTTP error occurred: %s", http_err)
+    
+    except requests.exceptions.RequestException as req_err:
+        logging.error("An error occurred while fetching weather data: %s", req_err)
+    
     return None
 
 def process_city_weather(city, api_key):
@@ -71,7 +90,7 @@ def extract_weather_data(input_cities_file, pause_duration):
         weather_data_frames = []  # List to hold individual DataFrames
         
         for _, city in cities_df.iterrows():
-            logging.info(f"Processing weather data for {city['capital_city']}, {city['country']}")
+            logging.info("Processing weather data for %s, %s", city['capital_city'], city['country'])
             city_weather_df = process_city_weather(city, api_key)
             if city_weather_df is not None:
                 weather_data_frames.append(city_weather_df)
@@ -87,8 +106,8 @@ def extract_weather_data(input_cities_file, pause_duration):
             return pd.DataFrame()  # Return an empty DataFrame if no data was processed
 
     except FileNotFoundError:
-        logging.error(f"File not found: {input_cities_file}")
+        logging.error("File not found: %s", input_cities_file)
         raise
     except Exception as e:
-        logging.error(f"An error occurred during extraction: {e}")
+        logging.error("An error occurred during extraction: %s", e)
         raise

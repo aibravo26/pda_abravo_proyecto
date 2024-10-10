@@ -1,14 +1,35 @@
-import os
-import sys
-import unittest
-import pandas as pd
-from unittest.mock import patch, MagicMock
+"""
+This module contains unit tests for the load_config function from the scripts.apis_etl.utils module.
+It tests the correct loading of configuration settings from a configuration file.
+"""
+
+import os  # Standard library import
+import sys  # Standard library import
+import unittest  # Standard library import
+from unittest.mock import patch, MagicMock  # Standard library import for mocking
+
+# Insert your project directory into the system path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from scripts.apis_etl.utils import load_config
+
+from scripts.apis_etl.utils import load_config  # Local application import
 
 class TestLoadConfig(unittest.TestCase):
+    """
+    Unit tests for the load_config function from the scripts.apis_etl.utils module.
+    """
+
     @patch('utils.configparser.ConfigParser')
     def test_load_config(self, mock_config_parser):
+        """
+        Test that load_config reads configuration values correctly and converts them to the appropriate 
+        data types.
+
+        Args:
+            mock_config_parser (unittest.mock.Mock): Mock object for configparser.ConfigParser.
+
+        Returns:
+            None
+        """
         # Mocking the configparser.ConfigParser instance
         mock_config = MagicMock()
         
@@ -31,6 +52,8 @@ class TestLoadConfig(unittest.TestCase):
 
         # Assertions to check if the result matches the expected output
         self.assertEqual(result, expected_result)
+
+        # Ensure that the correct file was read
         mock_config.read.assert_called_once_with('test_config.ini')
 
 if __name__ == '__main__':

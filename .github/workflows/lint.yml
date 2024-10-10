@@ -27,4 +27,4 @@ jobs:
 
     - name: Run Pylint
       run: |
-        poetry run pylint your_project_directory  # Replace with your actual project directory
+        poetry run pylint ../../pda_abravo_proyecto

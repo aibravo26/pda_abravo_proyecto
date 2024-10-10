@@ -1,15 +1,38 @@
-import os
-import sys
-import unittest
-import pandas as pd
-from unittest.mock import patch
+"""
+This module contains unit tests for functions that extract and convert weather data using 
+the OpenWeatherMap API. It tests the retrieval of weather data and its conversion to a pandas 
+DataFrame.
+"""
 
+import os  # Standard library import
+import sys  # Standard library import
+import unittest  # Standard library import
+from unittest.mock import patch  # Standard library import for mocking
+import pandas as pd  # Third-party import
+
+# Insert your project directory into the system path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from scripts.apis_etl.extractors.weather_api import get_weather_data, convert_weather_data_to_df
+
+from scripts.apis_etl.extractors.weather_api import get_weather_data, convert_weather_data_to_df  # Local imports
 
 class TestWeatherData(unittest.TestCase):
+    """
+    Unit tests for the weather data extraction and conversion functions from the 
+    scripts.apis_etl.extractors.weather_api module.
+    """
+
     @patch('scripts.apis_etl.extractors.weather_api.requests.get')
     def test_get_weather_data(self, mock_get):
+        """
+        Test that get_weather_data retrieves and converts weather data from the OpenWeatherMap API 
+        correctly.
+
+        Args:
+            mock_get (unittest.mock.Mock): Mock object for requests.get.
+
+        Returns:
+            None
+        """
         # Mock response data from OpenWeatherMap API
         mock_response = {
             "main": {

@@ -1,6 +1,11 @@
+"""
+This module provides functionality to update the dim_population table in Redshift using 
+Slowly Changing Dimension (SCD) Type 2 logic. The update handles new population changes 
+and maintains historical data.
+"""
+
 import os
 import logging
-from sqlalchemy import text
 
 def check_population_updates(engine):
     """Update dim_population table with SCD Type 2 logic, handling new population changes."""
@@ -9,7 +14,7 @@ def check_population_updates(engine):
     schema_name = f'"{os.getenv("REDSHIFT_SCHEMA")}"' 
 
     try:
-        logging.info(f"Starting SCD Type 2 update for dim_population in schema '{schema_name}'.")
+        logging.info("Starting SCD Type 2 update for dim_population in schema '%s'.", schema_name)
 
         update_population_sql = f"""
         BEGIN TRANSACTION;
@@ -55,9 +60,9 @@ def check_population_updates(engine):
         """
 
         with engine.connect() as connection:
-            logging.info(f"Executing population update SQL in schema '{schema_name}'.")
+            logging.info("Executing population update SQL in schema '%s'.", schema_name)
             connection.execute(update_population_sql)
-        logging.info(f"dim_population successfully updated in schema '{schema_name}'.")
+        logging.info("dim_population successfully updated in schema '%s'.", schema_name)
     except Exception as e:
-        logging.error(f"Error updating dim_population: {e}")
+        logging.error("Error updating dim_population: %s", e)
         raise

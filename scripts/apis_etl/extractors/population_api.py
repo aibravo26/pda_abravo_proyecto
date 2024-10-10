@@ -1,11 +1,21 @@
-import os
-import sys
-import logging
+"""
+This module handles population data extraction from the GeoNames API for cities based on
+latitude and longitude coordinates. It processes city data, retrieves population information
+via the API, and returns the data as a pandas DataFrame.
+"""
+
+import os  # Standard Library import
+import sys  # Standard Library import
+import logging  # Standard Library import
+import time  # Standard Library import
+
+import requests  # Third-party import
+import pandas as pd  # Third-party import
+
+from scripts.apis_etl.utils import get_api_key  # Local application import
+
+# Insert your project directory to the system path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-import requests
-import pandas as pd
-import time
-from scripts.apis_etl.utils import get_api_key
 
 def get_population_data(lat, lon, username):
     """Retrieve population data from GeoNames API based on latitude and longitude."""
@@ -16,7 +26,7 @@ def get_population_data(lat, lon, username):
             'lng': lon,
             'username': username
         }
-        response = requests.get(base_url, params=params)
+        response = requests.get(base_url, params=params, timeout=10)
         response.raise_for_status()
         data = response.json()
 
@@ -27,18 +37,28 @@ def get_population_data(lat, lon, username):
             try:
                 population = int(population_str)
             except (ValueError, TypeError):
-                logging.warning(f"Invalid population data for lat={lat}, lon={lon}. Setting population to None.")
+                logging.warning("Invalid population data for lat=%s, lon=%s. Setting population to None.", lat, lon)
                 population = None  # Or set to 0 if that's preferable
 
-            logging.info(f"Retrieved population data for lat={lat}, lon={lon}: {population}")
+            logging.info("Retrieved population data for lat=%s, lon=%s: %s", lat, lon, population)
             return population
         else:
             return None
-    except requests.exceptions.HTTPError as http_err:
-        logging.error(f"HTTP error occurred: {http_err}")
+        
+    except requests.exceptions.Timeout:
+        logging.error("Timeout occurred while fetching population data for lat=%s, lon=%s", lat, lon)
         return None
-    except Exception as e:
-        logging.error(f"Error retrieving population data for lat={lat}, lon={lon}: {e}")
+
+    except requests.exceptions.ConnectionError:
+        logging.error("Connection error occurred while fetching population data for lat=%s, lon=%s", lat, lon)
+        return None
+
+    except requests.exceptions.HTTPError as http_err:
+        logging.error("HTTP error occurred while fetching population data: %s", http_err)
+        return None
+
+    except requests.exceptions.RequestException as req_err:
+        logging.error("An error occurred while fetching population data: %s", req_err)
         return None
 
 def extract_population_data(input_cities_file, pause_duration):
@@ -52,7 +72,7 @@ def extract_population_data(input_cities_file, pause_duration):
         population_data = []
 
         for _, city in cities_df.iterrows():
-            logging.info(f"Processing population data for {city['capital_city']}, {city['country']}")
+            logging.info("Processing population data for %s, %s", city['capital_city'], city['country'])
             population = get_population_data(city['lat'], city['lon'], username)
             population_data.append({
                 'country': city['country'],
@@ -61,12 +81,11 @@ def extract_population_data(input_cities_file, pause_duration):
             })
             time.sleep(pause_duration)
 
-        # Save extracted population data to a Parquet file
         population_df = pd.DataFrame(population_data)
         logging.info("Extract process completed successfully")
         return population_df
     except FileNotFoundError:
         raise
     except Exception as e:
-        logging.error(f"An error occurred during extraction: {e}")
+        logging.error("An error occurred during extraction: %s", e)
         raise

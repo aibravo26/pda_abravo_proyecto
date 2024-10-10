@@ -10,6 +10,7 @@ Here’s a brief overview of the project: it involves a script that extracts dat
 * **Python-based Project:** This project is written using Python, leveraging its robust libraries and tools for data extraction, transformation, and loading (ETL).
 * **Dependency Management with Poetry:** All packages and dependencies are managed with Poetry, ensuring consistent environments and easy setup.
 * **Quality Assurance with Unit Tests:** The project includes unit tests to ensure code quality and functionality, improving the reliability of data pipelines.
+* **Linting for Best Code Practices:** Linting tools such as Pylint and Flake8 are integrated into the project to enforce coding standards, ensure readability, and prevent common programming errors, promoting maintainable and clean code.
 * **Workflow Orchestration with Apache Airflow:** Apache Airflow is used to orchestrate the ETL processes, managing the scheduling and execution of data workflows.
 * **Redshift as Data Warehouse:** Data is stored in Amazon Redshift, a highly scalable cloud-based data warehouse, enabling fast and efficient querying of large datasets.
 * **Containerization with Docker:** The entire project is containerized with Docker, making it easy to deploy and run the application in any environment.

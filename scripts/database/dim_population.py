@@ -14,6 +14,10 @@ def check_population_updates(engine):
         update_population_sql = f"""
         BEGIN TRANSACTION;
 
+        -- Step 0: Create a temporary table to store the current timestamp
+        CREATE TEMP TABLE temp_dates AS 
+        SELECT CURRENT_TIMESTAMP AS current_date;
+
         -- Step 1: Insert new records for population changes
         INSERT INTO {schema_name}.dim_population (
             city_id, population, effective_date, expiration_date, is_current
@@ -21,7 +25,7 @@ def check_population_updates(engine):
         SELECT
             d.id,
             s.population,
-            CURRENT_TIMESTAMP AS effective_date,
+            temp_dates.current_date AS effective_date,
             '9999-12-31' AS expiration_date,
             TRUE AS is_current
         FROM {schema_name}.staging_api_population_data s
@@ -29,18 +33,23 @@ def check_population_updates(engine):
         LEFT JOIN {schema_name}.dim_population dp
             ON d.id = dp.city_id
             AND dp.is_current = TRUE
+        CROSS JOIN temp_dates
         WHERE dp.city_id IS NULL
         OR dp.population != s.population;
 
         -- Step 2: Expire old records where population has changed
         UPDATE {schema_name}.dim_population
-        SET expiration_date = CURRENT_TIMESTAMP, 
+        SET expiration_date = temp_dates.current_date, 
             is_current = FALSE
         FROM {schema_name}.staging_api_population_data s
         LEFT JOIN {schema_name}.dim_cities d ON s.capital_city = d.city_name
+        CROSS JOIN temp_dates
         WHERE {schema_name}.dim_population.city_id = d.id
         AND {schema_name}.dim_population.is_current = TRUE
         AND {schema_name}.dim_population.population != s.population;
+
+        -- Step 3: Drop the temporary table
+        DROP TABLE IF EXISTS temp_dates;
 
         COMMIT;
         """

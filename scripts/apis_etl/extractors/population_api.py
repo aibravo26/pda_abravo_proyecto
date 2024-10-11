@@ -41,19 +41,28 @@ def get_population_data(lat, lon, username):
                     "Invalid population data for lat=%s, lon=%s. Setting population to None.",
                     lat, lon
                 )
-                population = None  # Or set to 0 if that's preferable
+                population = None
 
-            logging.info("Retrieved population data for lat=%s, lon=%s: %s", lat, lon, population)
+            logging.info(
+                "Retrieved population data for lat=%s, lon=%s: %s", 
+                lat, lon, population
+            )
             return population
 
         return None
-        
+
     except requests.exceptions.Timeout:
-        logging.error("Timeout occurred while fetching population data for lat=%s, lon=%s", lat, lon)
+        logging.error(
+            "Timeout occurred while fetching population data for lat=%s, lon=%s", 
+            lat, lon
+        )
         return None
 
     except requests.exceptions.ConnectionError:
-        logging.error("Connection error occurred while fetching population data for lat=%s, lon=%s", lat, lon)
+        logging.error(
+            "Connection error occurred while fetching population data for lat=%s, lon=%s", 
+            lat, lon
+        )
         return None
 
     except requests.exceptions.HTTPError as http_error:
@@ -69,13 +78,16 @@ def extract_population_data(input_cities_file, pause_duration):
     try:
         # Retrieve the GeoNames username from environment variables using the utility
         username = get_api_key('GEONAMES')
-        
+
         # Load city data from CSV
         cities_df = pd.read_csv(input_cities_file)
         population_data = []
 
         for _, city in cities_df.iterrows():
-            logging.info("Processing population data for %s, %s", city['capital_city'], city['country'])
+            logging.info(
+                "Processing population data for %s, %s", 
+                city['capital_city'], city['country']
+            )
             population = get_population_data(city['lat'], city['lon'], username)
             population_data.append({
                 'country': city['country'],

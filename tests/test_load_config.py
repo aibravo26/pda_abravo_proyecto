@@ -22,8 +22,8 @@ class TestLoadConfig(unittest.TestCase):
     @patch('scripts.apis_etl.utils.configparser.ConfigParser')  # Corrected the patch path
     def test_load_config(self, mock_config_parser):
         """
-        Test that load_config reads configuration values correctly and converts them to the appropriate 
-        data types.
+        Test that load_config reads configuration values correctly and converts them to
+        the appropriate data types.
 
         Args:
             mock_config_parser (unittest.mock.Mock): Mock object for configparser.ConfigParser.
@@ -33,13 +33,13 @@ class TestLoadConfig(unittest.TestCase):
         """
         # Mocking the configparser.ConfigParser instance
         mock_config = MagicMock()
-        
+
         # Mocking the 'DEFAULT' section access
         mock_config.__getitem__.return_value = {
             'input_cities_file': 'test_input.csv',
             'pause_duration': '2.5'
         }
-        
+
         mock_config_parser.return_value = mock_config
 
         # Call the load_config function

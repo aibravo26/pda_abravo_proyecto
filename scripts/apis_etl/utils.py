@@ -20,7 +20,10 @@ def load_config(config_file='config/config.ini'):
 
 def setup_logging():
     """Setup logging configuration."""
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    logging.basicConfig(
+        level=logging.INFO, 
+        format='%(asctime)s - %(levelname)s - %(message)s'
+    )
 
 def get_api_key(api_name):
     """
@@ -32,7 +35,10 @@ def get_api_key(api_name):
     """
     api_key = os.getenv(f'{api_name}_API_KEY')
     if not api_key:
-        raise ValueError(f"No API key found for {api_name}. Please set the {api_name}_API_KEY environment variable.")
+        raise ValueError(
+            f"No API key found for {api_name}. Please set the {api_name}_API_KEY "
+            "environment variable."
+        )
     logging.info("Successfully retrieved API key for %s", api_name)
     return api_key
 

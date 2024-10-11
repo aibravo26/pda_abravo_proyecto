@@ -48,7 +48,8 @@ class TestApiKeySuccess(unittest.TestCase):
     @patch('os.getenv')
     def test_get_api_key_not_set(self, mock_getenv):
         """
-        Test that get_api_key raises a ValueError when the corresponding environment variable is not set.
+        Test that get_api_key raises a ValueError when the corresponding environment
+        variable is not set.
 
         Args:
             mock_getenv (unittest.mock.Mock): Mock object for os.getenv.
@@ -66,7 +67,8 @@ class TestApiKeySuccess(unittest.TestCase):
         # Check that the correct error message is raised
         self.assertEqual(
             str(context.exception),
-            "No API key found for OPENWEATHERMAP. Please set the OPENWEATHERMAP_API_KEY environment variable."
+            "No API key found for OPENWEATHERMAP. "
+            "Please set the OPENWEATHERMAP_API_KEY environment variable."
         )
 
         # Check that the correct environment variable was checked

@@ -1,5 +1,5 @@
 """
-This module provides functions to extract and process weather data from the OpenWeatherMap API. 
+This module provides functions to extract and process weather data from the OpenWeatherMap API.
 It converts the weather data into pandas DataFrames and handles multiple cities.
 """
 
@@ -50,11 +50,17 @@ def get_weather_data(lat, lon, api_key):
         response.raise_for_status()
         logging.info("Retrieved weather data for lat=%s, lon=%s", lat, lon)
         return response.json()
-    
+
     except requests.exceptions.Timeout:
-        logging.error("Timeout occurred while fetching weather data for lat=%s, lon=%s", lat, lon)
+        logging.error(
+            "Timeout occurred while fetching weather data for lat=%s, lon=%s", 
+            lat, lon
+        )
     except requests.exceptions.ConnectionError:
-        logging.error("Connection error occurred while fetching weather data for lat=%s, lon=%s", lat, lon)
+        logging.error(
+            "Connection error occurred while fetching weather data for lat=%s, lon=%s", 
+            lat, lon
+        )
     except requests.exceptions.HTTPError as http_error:
         logging.error("HTTP error occurred: %s", http_error)
     except requests.exceptions.RequestException as req_error:
@@ -70,11 +76,11 @@ def process_city_weather(city, api_key):
 
     # Convert weather data to DataFrame using the imported function
     weather_df = convert_weather_data_to_df(city_weather)
-    
+
     # Add additional city information to the DataFrame
     weather_df["country"] = city["country"]
     weather_df["capital_city"] = city["capital_city"]
-    
+
     return weather_df
 
 def extract_weather_data(input_cities_file, pause_duration):
@@ -85,9 +91,12 @@ def extract_weather_data(input_cities_file, pause_duration):
     try:
         cities_df = pd.read_csv(input_cities_file)
         weather_data_frames = []  # List to hold individual DataFrames
-        
+
         for _, city in cities_df.iterrows():
-            logging.info("Processing weather data for %s, %s", city['capital_city'], city['country'])
+            logging.info(
+                "Processing weather data for %s, %s", 
+                city['capital_city'], city['country']
+            )
             city_weather_df = process_city_weather(city, api_key)
             if city_weather_df is not None:
                 weather_data_frames.append(city_weather_df)
@@ -98,7 +107,7 @@ def extract_weather_data(input_cities_file, pause_duration):
             weather_df = pd.concat(weather_data_frames, ignore_index=True)
             logging.info("Extract process completed successfully")
             return weather_df
-        
+
         logging.warning("No weather data extracted.")
         return pd.DataFrame()  # Return an empty DataFrame if no data was processed
 

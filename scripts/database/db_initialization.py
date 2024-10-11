@@ -11,7 +11,8 @@ import logging
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 def create_tables_if_not_exist(engine):
-    """Create dim_cities, dim_population, and fact_weather_metrics tables with identity columns if they don't exist."""
+    """Create dim_cities, dim_population, and fact_weather_metrics tables
+    with identity columns if they don't exist."""
 
     # Fetch schema from environment variable
     schema_name = os.getenv("REDSHIFT_SCHEMA")

@@ -50,7 +50,10 @@ def load_config_task():
     logging.info("Configuration loaded.")
     return config
 
-def extract_transform_load_generic(extract_func, transform_type, table_name, requires_pause_duration=False, **kwargs):
+def extract_transform_load_generic(
+    extract_func, transform_type, table_name, 
+    requires_pause_duration=False, **kwargs
+):
     """Generic function for extracting, transforming, and loading data into Redshift."""
     task_instance = kwargs['task_instance']
     config, redshift_engine = get_config_and_redshift(task_instance)
@@ -105,8 +108,12 @@ def extract_transform_load_sources(**kwargs):
         logging.info("Population data ETL completed.")
 
     except Exception as error:
-        logging.error("Failed to execute consolidated ETL for cities, weather, and population: %s", error)
+        logging.error(
+            "Failed to execute consolidated ETL for cities, weather, and population: %s",
+            error
+        )
         raise
+
 
 def initialize_and_process_db():
     """Initialize Redshift tables and process cities, population, and weather data."""

@@ -21,7 +21,7 @@ def load_config(config_file='config/config.ini'):
 def setup_logging():
     """Setup logging configuration."""
     logging.basicConfig(
-        level=logging.INFO, 
+        level=logging.INFO,
         format='%(asctime)s - %(levelname)s - %(message)s'
     )
 

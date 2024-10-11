@@ -51,7 +51,7 @@ def load_config_task():
     return config
 
 def extract_transform_load_generic(
-    extract_func, transform_type, table_name, 
+    extract_func, transform_type, table_name,
     requires_pause_duration=False, **kwargs
 ):
     """Generic function for extracting, transforming, and loading data into Redshift."""

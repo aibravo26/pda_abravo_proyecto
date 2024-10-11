@@ -1,7 +1,11 @@
+"""
+This module contains utility functions for loading configuration, setting up logging, 
+retrieving API keys, and connecting to Redshift.
+"""
+
 import os
 import configparser
 import logging
-import pandas as pd
 from sqlalchemy import create_engine
 
 def load_config(config_file='config/config.ini'):
@@ -29,7 +33,7 @@ def get_api_key(api_name):
     api_key = os.getenv(f'{api_name}_API_KEY')
     if not api_key:
         raise ValueError(f"No API key found for {api_name}. Please set the {api_name}_API_KEY environment variable.")
-    logging.info(f"Successfully retrieved API key for {api_name}")
+    logging.info("Successfully retrieved API key for %s", api_name)
     return api_key
 
 def connect_to_redshift():
@@ -49,6 +53,6 @@ def connect_to_redshift():
         engine = create_engine(connection_string, connect_args={"options": ""})
         logging.info("Successfully connected to Redshift using SQLAlchemy")
         return engine
-    except Exception as e:
-        logging.error(f"Error connecting to Redshift: {e}")
+    except Exception as error:
+        logging.error("Error connecting to Redshift: %s", error)
         raise

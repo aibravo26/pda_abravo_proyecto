@@ -17,7 +17,7 @@ from scripts.apis_etl.utils import get_api_key  # Local application import
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 def convert_weather_data_to_df(weather_data):
-    """Convert Weather Dict to Dataframe"""
+    """Convert Weather Dict to DataFrame"""
     return pd.DataFrame([{
         "temperature": weather_data["main"]["temp"],
         "feels_like": weather_data["main"]["feels_like"],
@@ -57,11 +57,11 @@ def get_weather_data(lat, lon, api_key):
     except requests.exceptions.ConnectionError:
         logging.error("Connection error occurred while fetching weather data for lat=%s, lon=%s", lat, lon)
     
-    except requests.exceptions.HTTPError as http_err:
-        logging.error("HTTP error occurred: %s", http_err)
+    except requests.exceptions.HTTPError as http_error:
+        logging.error("HTTP error occurred: %s", http_error)
     
-    except requests.exceptions.RequestException as req_err:
-        logging.error("An error occurred while fetching weather data: %s", req_err)
+    except requests.exceptions.RequestException as req_error:
+        logging.error("An error occurred while fetching weather data: %s", req_error)
     
     return None
 
@@ -108,6 +108,6 @@ def extract_weather_data(input_cities_file, pause_duration):
     except FileNotFoundError:
         logging.error("File not found: %s", input_cities_file)
         raise
-    except Exception as e:
-        logging.error("An error occurred during extraction: %s", e)
+    except Exception as error:
+        logging.error("An error occurred during extraction: %s", error)
         raise

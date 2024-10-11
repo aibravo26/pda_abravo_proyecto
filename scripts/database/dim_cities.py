@@ -35,6 +35,6 @@ def check_new_cities_additions(engine):
 
             logging.info("Inserted new cities into %s.dim_cities successfully.", schema_name)
 
-    except Exception as e:
-        logging.error("Error while inserting new cities into %s.dim_cities: %s", schema_name, e)
+    except Exception as error:
+        logging.error("Error while inserting new cities into %s.dim_cities: %s", schema_name, error)
         raise

@@ -13,7 +13,10 @@ import pandas as pd  # Third-party import
 # Insert your project directory into the system path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from scripts.apis_etl.extractors.weather_api import get_weather_data, convert_weather_data_to_df  # Local imports
+# Correct imports, moved to the top of the module
+from scripts.apis_etl.extractors.weather_api import (
+    get_weather_data, convert_weather_data_to_df
+)  # Local imports
 
 class TestWeatherData(unittest.TestCase):
     """

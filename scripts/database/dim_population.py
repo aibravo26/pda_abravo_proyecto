@@ -11,10 +11,13 @@ def check_population_updates(engine):
     """Update dim_population table with SCD Type 2 logic, handling new population changes."""
 
     # Fetch schema from environment variable
-    schema_name = f'"{os.getenv("REDSHIFT_SCHEMA")}"' 
+    schema_name = f'"{os.getenv("REDSHIFT_SCHEMA")}"'
 
     try:
-        logging.info("Starting SCD Type 2 update for dim_population in schema '%s'.", schema_name)
+        logging.info(
+            "Starting SCD Type 2 update for dim_population in schema '%s'.",
+            schema_name
+        )
 
         update_population_sql = f"""
         BEGIN TRANSACTION;
@@ -60,9 +63,15 @@ def check_population_updates(engine):
         """
 
         with engine.connect() as connection:
-            logging.info("Executing population update SQL in schema '%s'.", schema_name)
+            logging.info(
+                "Executing population update SQL in schema '%s'.",
+                schema_name
+            )
             connection.execute(update_population_sql)
-        logging.info("dim_population successfully updated in schema '%s'.", schema_name)
-    except Exception as e:
-        logging.error("Error updating dim_population: %s", e)
+        logging.info(
+            "dim_population successfully updated in schema '%s'.",
+            schema_name
+        )
+    except Exception as error:
+        logging.error("Error updating dim_population: %s", error)
         raise

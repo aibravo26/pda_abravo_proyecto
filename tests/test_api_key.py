@@ -12,6 +12,7 @@ from unittest.mock import patch  # Standard library import for mocking
 # Insert your project directory into the system path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+# Correct import of get_api_key, moved to the top
 from scripts.apis_etl.utils import get_api_key  # Local application import
 
 class TestApiKeySuccess(unittest.TestCase):
@@ -20,7 +21,7 @@ class TestApiKeySuccess(unittest.TestCase):
     variables.
     """
 
-    @patch('scripts.apis_etl.utils.os.getenv')
+    @patch('scripts.apis_etl.utils.os.getenv')  # Corrected the patch path
     def test_get_api_key_success(self, mock_getenv):
         """
         Test that get_api_key successfully retrieves the API key when the corresponding environment 
@@ -64,12 +65,12 @@ class TestApiKeySuccess(unittest.TestCase):
 
         # Check that the correct error message is raised
         self.assertEqual(
-            str(context.exception), 
+            str(context.exception),
             "No API key found for OPENWEATHERMAP. Please set the OPENWEATHERMAP_API_KEY environment variable."
         )
 
         # Check that the correct environment variable was checked
-        mock_getenv.assert_called_with('OPENWEATHERMAP_API_KEY')       
+        mock_getenv.assert_called_with('OPENWEATHERMAP_API_KEY')
 
 if __name__ == '__main__':
     unittest.main(exit=False)

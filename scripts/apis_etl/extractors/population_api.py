@@ -37,13 +37,16 @@ def get_population_data(lat, lon, username):
             try:
                 population = int(population_str)
             except (ValueError, TypeError):
-                logging.warning("Invalid population data for lat=%s, lon=%s. Setting population to None.", lat, lon)
+                logging.warning(
+                    "Invalid population data for lat=%s, lon=%s. Setting population to None.",
+                    lat, lon
+                )
                 population = None  # Or set to 0 if that's preferable
 
             logging.info("Retrieved population data for lat=%s, lon=%s: %s", lat, lon, population)
             return population
-        else:
-            return None
+
+        return None
         
     except requests.exceptions.Timeout:
         logging.error("Timeout occurred while fetching population data for lat=%s, lon=%s", lat, lon)
@@ -53,12 +56,12 @@ def get_population_data(lat, lon, username):
         logging.error("Connection error occurred while fetching population data for lat=%s, lon=%s", lat, lon)
         return None
 
-    except requests.exceptions.HTTPError as http_err:
-        logging.error("HTTP error occurred while fetching population data: %s", http_err)
+    except requests.exceptions.HTTPError as http_error:
+        logging.error("HTTP error occurred while fetching population data: %s", http_error)
         return None
 
-    except requests.exceptions.RequestException as req_err:
-        logging.error("An error occurred while fetching population data: %s", req_err)
+    except requests.exceptions.RequestException as req_error:
+        logging.error("An error occurred while fetching population data: %s", req_error)
         return None
 
 def extract_population_data(input_cities_file, pause_duration):
@@ -84,8 +87,10 @@ def extract_population_data(input_cities_file, pause_duration):
         population_df = pd.DataFrame(population_data)
         logging.info("Extract process completed successfully")
         return population_df
+
     except FileNotFoundError:
         raise
-    except Exception as e:
-        logging.error("An error occurred during extraction: %s", e)
+
+    except Exception as error:
+        logging.error("An error occurred during extraction: %s", error)
         raise

@@ -66,7 +66,10 @@ def create_tables_if_not_exist(engine):
 
         # Execute the queries
         with engine.connect() as connection:
-            logging.info("Executing table creation queries in schema '%s'.", schema_name)
+            logging.info(
+                "Executing table creation queries in schema '%s'.",
+                schema_name
+            )
             connection.execute(create_dim_cities_sql)
             logging.info("Table %s.dim_cities created or already exists.", schema_name)
             connection.execute(create_dim_population_sql)
@@ -74,8 +77,11 @@ def create_tables_if_not_exist(engine):
             connection.execute(create_fact_weather_metrics_sql)
             logging.info("Table %s.fact_weather_metrics created or already exists.", schema_name)
 
-        logging.info("All tables in schema '%s' created or verified successfully.", schema_name)
+        logging.info(
+            "All tables in schema '%s' created or verified successfully.",
+            schema_name
+        )
 
-    except Exception as e:
-        logging.error("Error creating tables in schema '%s': %s", schema_name, e)
+    except Exception as error:
+        logging.error("Error creating tables in schema '%s': %s", schema_name, error)
         raise

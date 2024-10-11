@@ -11,6 +11,7 @@ from unittest.mock import patch, MagicMock  # Standard library import for mockin
 # Insert your project directory into the system path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
+# Correct import of load_config, moving it to the top
 from scripts.apis_etl.utils import load_config  # Local application import
 
 class TestLoadConfig(unittest.TestCase):
@@ -18,7 +19,7 @@ class TestLoadConfig(unittest.TestCase):
     Unit tests for the load_config function from the scripts.apis_etl.utils module.
     """
 
-    @patch('utils.configparser.ConfigParser')
+    @patch('scripts.apis_etl.utils.configparser.ConfigParser')  # Corrected the patch path
     def test_load_config(self, mock_config_parser):
         """
         Test that load_config reads configuration values correctly and converts them to the appropriate 

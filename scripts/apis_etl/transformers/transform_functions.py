@@ -8,21 +8,28 @@ from datetime import datetime, timezone  # Standard library import
 import pandas as pd  # Third-party import
 
 
-def transform_execution_dates_addition(df, data_type):
+def transform_execution_dates_addition(dataframe, data_type):
     """Generic function to transform data (weather or population), adding timestamps."""
     try:
         # Add current timestamp in UTC and current date as timestamp types
-        df['execution_timestamp_utc'] = pd.Timestamp(datetime.now(timezone.utc))  # Timestamp with timezone
-        df['execution_date'] = pd.Timestamp(datetime.now(timezone.utc).date())  # Timestamp for just the date
+        dataframe['execution_timestamp_utc'] = pd.Timestamp(
+            datetime.now(timezone.utc)
+        )  # Timestamp with timezone
+        dataframe['execution_date'] = pd.Timestamp(
+            datetime.now(timezone.utc).date()
+        )  # Timestamp for just the date
 
         # Save the transformed DataFrame
         logging.info("Transformed %s data successfully", data_type)
-        return df
+        return dataframe
 
     except ValueError as val_err:
-        logging.error("ValueError encountered while transforming %s data: %s", data_type, val_err)
+        logging.error(
+            "ValueError encountered while transforming %s data: %s",
+            data_type, val_err
+        )
         raise
 
-    except Exception as e:
-        logging.error("Error transforming %s data: %s", data_type, e)
+    except Exception as error:
+        logging.error("Error transforming %s data: %s", data_type, error)
         raise

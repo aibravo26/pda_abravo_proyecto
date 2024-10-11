@@ -1,3 +1,9 @@
+"""
+This DAG defines the ETL process for loading cities, weather, and population data into Redshift. 
+It includes the extraction, transformation, and loading (ETL) steps as well as table initialization 
+and updates for Slowly Changing Dimensions (SCD) in Redshift.
+"""
+
 import os  # Standard library import
 import sys  # Standard library import
 from datetime import datetime  # Standard library import
@@ -9,7 +15,7 @@ from airflow.operators.python import PythonOperator  # Third-party import
 # Insert your project directory to the system path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# Breaking long import lines
+# Imports of custom modules for ETL - move imports to the top of the module
 from scripts.apis_etl.extractors.cities import extract_cities_data
 from scripts.apis_etl.extractors.weather_api import extract_weather_data
 from scripts.apis_etl.extractors.population_api import extract_population_data
@@ -25,17 +31,15 @@ from scripts.database.dim_cities import check_new_cities_additions
 from scripts.database.dim_population import check_population_updates
 from scripts.database.fact_weather_metrics import load_incremental_weather_data
 
-
-
 default_args = {
     'owner': 'airflow',
     'start_date': datetime(2024, 10, 1),
     'retries': 1,
 }
 
-def get_config_and_redshift(ti):
+def get_config_and_redshift(task_instance):
     """Helper to get config and Redshift engine."""
-    config = ti.xcom_pull(task_ids='load_config')
+    config = task_instance.xcom_pull(task_ids='load_config')
     redshift_engine = connect_to_redshift()
     return config, redshift_engine
 
@@ -46,14 +50,19 @@ def load_config_task():
     logging.info("Configuration loaded.")
     return config
 
-def extract_transform_load_generic(extract_func, transform_type, table_name, requires_pause_duration=False, **kwargs):
+def extract_transform_load_generic(
+    extract_func, transform_type, table_name,
+    requires_pause_duration=False, **kwargs
+):
     """Generic function for extracting, transforming, and loading data into Redshift."""
-    ti = kwargs['ti']
-    config, redshift_engine = get_config_and_redshift(ti)
+    task_instance = kwargs['task_instance']
+    config, redshift_engine = get_config_and_redshift(task_instance)
     try:
         # Extract data using the provided extract function
         if requires_pause_duration:
-            extracted_df = extract_func(config['input_cities_file'], config.get('pause_duration', None))
+            extracted_df = extract_func(
+                config['input_cities_file'], config.get('pause_duration', None)
+            )
         else:
             extracted_df = extract_func(config['input_cities_file'])
 
@@ -64,8 +73,8 @@ def extract_transform_load_generic(extract_func, transform_type, table_name, req
         save_to_redshift(transformed_df, table_name, redshift_engine)
         logging.info("%s data loaded into %s in Redshift.", transform_type.capitalize(), table_name)
 
-    except Exception as e:
-        logging.error("Failed to load %s data: %s", transform_type, e)
+    except Exception as error:
+        logging.error("Failed to load %s data: %s", transform_type, error)
         raise
 
 def extract_transform_load_sources(**kwargs):
@@ -98,9 +107,13 @@ def extract_transform_load_sources(**kwargs):
         )
         logging.info("Population data ETL completed.")
 
-    except Exception as e:
-        logging.error("Failed to execute consolidated ETL for cities, weather, and population: %s", e)
+    except Exception as error:
+        logging.error(
+            "Failed to execute consolidated ETL for cities, weather, and population: %s",
+            error
+        )
         raise
+
 
 def initialize_and_process_db():
     """Initialize Redshift tables and process cities, population, and weather data."""
@@ -122,8 +135,8 @@ def initialize_and_process_db():
         load_incremental_weather_data(redshift_engine)
         logging.info("Loaded incremental weather data.")
 
-    except Exception as e:
-        logging.error("Failed to initialize and process data: %s", e)
+    except Exception as error:
+        logging.error("Failed to initialize and process data: %s", error)
         raise
 
 # Define the DAG

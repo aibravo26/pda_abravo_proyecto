@@ -11,10 +11,13 @@ def load_incremental_weather_data(engine):
     """Load incremental weather data into fact_weather_metrics."""
 
     # Fetch schema from environment variable
-    schema_name = f'"{os.getenv("REDSHIFT_SCHEMA")}"' 
+    schema_name = f'"{os.getenv("REDSHIFT_SCHEMA")}"'
 
     try:
-        logging.info("Starting incremental load for fact_weather_metrics in schema '%s'.", schema_name)
+        logging.info(
+            "Starting incremental load for fact_weather_metrics in schema '%s'.",
+            schema_name
+        )
 
         incremental_load_sql = f"""
         BEGIN TRANSACTION;
@@ -50,9 +53,16 @@ def load_incremental_weather_data(engine):
         """
 
         with engine.connect() as connection:
-            logging.info("Executing incremental load for fact_weather_metrics in schema '%s'.", schema_name)
+            logging.info(
+                "Executing incremental load for fact_weather_metrics in schema '%s'.",
+                schema_name
+            )
             connection.execute(incremental_load_sql)
-        logging.info("fact_weather_metrics updated successfully in schema '%s'.", schema_name)
-    except Exception as e:
-        logging.error("Error updating fact_weather_metrics: %s", e)
+
+        logging.info(
+            "fact_weather_metrics updated successfully in schema '%s'.",
+            schema_name
+        )
+    except Exception as error:
+        logging.error("Error updating fact_weather_metrics: %s", error)
         raise

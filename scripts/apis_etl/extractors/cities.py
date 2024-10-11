@@ -23,6 +23,6 @@ def extract_cities_data(cities_file_path):
         cities_df = pd.read_csv(cities_file_path)
         logging.info("Successfully extracted cities data from %s", cities_file_path)
         return cities_df
-    except Exception as e:
-        logging.error("Error extracting cities data from %s: %s", cities_file_path, e)
+    except Exception as error:
+        logging.error("Error extracting cities data from %s: %s", cities_file_path, error)
         raise

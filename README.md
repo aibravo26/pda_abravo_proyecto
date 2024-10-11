@@ -35,4 +35,75 @@ The models in the staging area (`staging_cities`, `staging_api_population_data`,
 - **fact_weather_metrics**:  
   An incremental fact table that stores weather data. Each time the DAG runs, it adds new data. The model uses `date` and `execution timestamp` as keys to ensure that only new weather information is added on every run.
 
-![DB ERD](https://github.com/user-attachments/assets/5b3cbc81-6449-4c31-8e74-5757c96ad502)
+![ERD - Logistics_ops  - ERD](https://github.com/user-attachments/assets/930fd09e-6328-49bf-9432-0fa1d3119506)
+
+## Steps to Run the Project in Docker using Docker Compose
+
+### 1. Clone the repository
+Open your terminal and clone the repository by running:
+```bash
+git clone https://github.com/aibravo26/pda_abravo_proyecto.git
+cd pda_abravo_proyecto
+```
+
+### 2. Set up environment variables
+Ensure you have a `.env` file that contains the necessary sensitive information, such as API keys and Redshift credentials.
+
+```
+# .env file
+
+AIRFLOW_UID=
+OPENWEATHERMAP_API_KEY=
+GEONAMES_API_KEY=
+REDSHIFT_HOST=
+REDSHIFT_PORT=
+REDSHIFT_DBNAME=
+REDSHIFT_USER=
+REDSHIFT_PASSWORD=
+REDSHIFT_SCHEMA=
+AIRFLOW_HOME=
+```
+
+For security and privacy matters, these values are not shared in this repository. Please contact me at **bravo.ag26@gmail.com** to obtain the necessary environment variable values.
+
+### 3. Build and run the services using Docker Compose
+You can start the whole setup, including linked services like PostgreSQL or Redshift, by running:
+```bash
+docker-compose up --build
+```
+
+Docker Compose will automatically handle building the images and running the services defined in the `docker-compose.yml` file.
+
+### 4. Access the Airflow web interface
+Once the services are running, you can access the Airflow web interface by opening your browser and navigating to:
+```
+http://localhost:8080
+```
+
+### 5. Access the running container
+If needed, you can access the container's shell to inspect it or run additional commands:
+```bash
+docker exec -it <container_id> /bin/bash
+```
+Replace `<container_id>` with the actual container ID, which you can find by running:
+```bash
+docker ps
+```
+
+### 6. Check logs and output
+You can check the container's logs to see the output from the project:
+```bash
+docker logs <container_id>
+```
+
+### 7. Stopping the services
+When you're done testing, you can stop the running services with:
+```bash
+docker-compose down
+```
+
+### 8. Rebuilding and restarting
+If you make changes and need to rebuild the services, you can use:
+```bash
+docker-compose up --build
+```

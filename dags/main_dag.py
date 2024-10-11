@@ -15,7 +15,7 @@ from airflow.operators.python import PythonOperator  # Third-party import
 # Insert your project directory to the system path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# Imports of custom modules for ETL
+# Imports of custom modules for ETL - move imports to the top of the module
 from scripts.apis_etl.extractors.cities import extract_cities_data
 from scripts.apis_etl.extractors.weather_api import extract_weather_data
 from scripts.apis_etl.extractors.population_api import extract_population_data
@@ -30,7 +30,6 @@ from scripts.database.db_initialization import create_tables_if_not_exist as cre
 from scripts.database.dim_cities import check_new_cities_additions
 from scripts.database.dim_population import check_population_updates
 from scripts.database.fact_weather_metrics import load_incremental_weather_data
-
 
 default_args = {
     'owner': 'airflow',
@@ -58,7 +57,9 @@ def extract_transform_load_generic(extract_func, transform_type, table_name, req
     try:
         # Extract data using the provided extract function
         if requires_pause_duration:
-            extracted_df = extract_func(config['input_cities_file'], config.get('pause_duration', None))
+            extracted_df = extract_func(
+                config['input_cities_file'], config.get('pause_duration', None)
+            )
         else:
             extracted_df = extract_func(config['input_cities_file'])
 

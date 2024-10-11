@@ -53,16 +53,13 @@ def get_weather_data(lat, lon, api_key):
     
     except requests.exceptions.Timeout:
         logging.error("Timeout occurred while fetching weather data for lat=%s, lon=%s", lat, lon)
-    
     except requests.exceptions.ConnectionError:
         logging.error("Connection error occurred while fetching weather data for lat=%s, lon=%s", lat, lon)
-    
     except requests.exceptions.HTTPError as http_error:
         logging.error("HTTP error occurred: %s", http_error)
-    
     except requests.exceptions.RequestException as req_error:
         logging.error("An error occurred while fetching weather data: %s", req_error)
-    
+
     return None
 
 def process_city_weather(city, api_key):
@@ -78,7 +75,7 @@ def process_city_weather(city, api_key):
     weather_df["country"] = city["country"]
     weather_df["capital_city"] = city["capital_city"]
     
-    return weather_df   
+    return weather_df
 
 def extract_weather_data(input_cities_file, pause_duration):
     """Extract weather data for cities and aggregate into a DataFrame."""
@@ -101,9 +98,9 @@ def extract_weather_data(input_cities_file, pause_duration):
             weather_df = pd.concat(weather_data_frames, ignore_index=True)
             logging.info("Extract process completed successfully")
             return weather_df
-        else:
-            logging.warning("No weather data extracted.")
-            return pd.DataFrame()  # Return an empty DataFrame if no data was processed
+        
+        logging.warning("No weather data extracted.")
+        return pd.DataFrame()  # Return an empty DataFrame if no data was processed
 
     except FileNotFoundError:
         logging.error("File not found: %s", input_cities_file)

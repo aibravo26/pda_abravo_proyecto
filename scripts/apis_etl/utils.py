@@ -50,7 +50,10 @@ def connect_to_redshift():
             f'@{redshift_host}:{redshift_port}/{redshift_dbname}'
         )
 
-        engine = create_engine(connection_string, connect_args={"options": ""})
+        engine = create_engine(
+            connection_string,
+            connect_args={"options": ""}
+        )
         logging.info("Successfully connected to Redshift using SQLAlchemy")
         return engine
     except Exception as error:

@@ -11,7 +11,7 @@ from unittest.mock import patch, MagicMock  # Standard library import for mockin
 # Insert your project directory into the system path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# Correct import of load_config, moving it to the top
+# Correct import of load_config, moved to the top
 from scripts.apis_etl.utils import load_config  # Local application import
 
 class TestLoadConfig(unittest.TestCase):
@@ -56,6 +56,7 @@ class TestLoadConfig(unittest.TestCase):
 
         # Ensure that the correct file was read
         mock_config.read.assert_called_once_with('test_config.ini')
+
 
 if __name__ == '__main__':
     unittest.main(exit=False)

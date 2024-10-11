@@ -14,7 +14,7 @@ def save_to_redshift(dataframe, table_name, engine, if_exists='replace'):
 
         # Save the DataFrame to Redshift using SQLAlchemy
         dataframe.to_sql(
-            table_name, con=engine, index=False, if_exists=if_exists, 
+            table_name, con=engine, index=False, if_exists=if_exists,
             schema=redshift_schema, method='multi'
         )
 

@@ -1,7 +1,8 @@
 # Python
 *.so
 *.py[cod]
-__pycache__/
+*__pycache__
+.pytest_cache
 .venv/
 .env
 logs/

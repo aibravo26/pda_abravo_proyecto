@@ -69,7 +69,7 @@ For security and privacy matters, these values are not shared in this repository
 ### 3. Build and run the services using Docker Compose
 You can start the whole setup, including linked services like PostgreSQL or Redshift, by running:
 ```bash
-docker-compose up --build
+docker-compose up -d --build
 ```
 
 Docker Compose will automatically handle building the images and running the services defined in the `docker-compose.yml` file.
